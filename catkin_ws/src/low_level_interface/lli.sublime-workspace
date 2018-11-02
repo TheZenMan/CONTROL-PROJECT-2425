@@ -1,0 +1,274 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"T_REM",
+				"T_REMOTE_in_filtered"
+			],
+			[
+				"pwm",
+				"pwm_to_period"
+			],
+			[
+				"PWM_IN",
+				"PWM_SW_INPUT_UPDATED"
+			],
+			[
+				"TMP_",
+				"TMP_t"
+			],
+			[
+				"uint",
+				"uint16_t"
+			],
+			[
+				"ctr",
+				"ctrl_code"
+			],
+			[
+				"tran",
+				"Transmisssion"
+			],
+			[
+				"IDL",
+				"IDLE_SW_ACTIVE"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "/*\n  The Clear BSD License\n\n  Copyright (c) 2018 Philipp Rothenhäusler\n  All rights reserved.\n\n  Redistribution and use in source and binary forms, with or without\n  modification, are permitted (subject to the limitations in the disclaimer\n  below) provided that the following conditions are met:\n\n       * Redistributions of source code must retain the above copyright notice,\n       this list of conditions and the following disclaimer.\n\n       * Redistributions in binary form must reproduce the above copyright\n       notice, this list of conditions and the following disclaimer in the\n       documentation and/or other materials provided with the distribution.\n\n       * Neither the name of the copyright holder nor the names of its\n       contributors may be used to endorse or promote products derived from this\n       software without specific prior written permission.\n\n  NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY\n  THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND\n  CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\n  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR\n  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,\n  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,\n  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR\n  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER\n  IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n  POSSIBILITY OF SUCH DAMAGE.\n*/\n\n#include <stdint.h>\n#include <avr/interrupt.h>\n#include <Servo.h>\n#include <Arduino.h>\n#include <ros.h>\n#include <std_msgs/String.h>\n#include <low_level_interface/lli_ctrl_request.h>\n#include <low_level_interface/lli_ctrl_actuated.h>\n\n/*\n\n     Configuration for Atmega 328p - Arduino Uno Rev.2\n     define digital output D3,5,6,9,10 with hardware based PWM\n\n     rc receiver is averaged with T_FILTER_MAX to filter out missed interrupts.\n\n     choose between 0x and 0b for visualisation\n     PIN-Overview (p.14) - see port, digital, alternate functions etc.\n\n          DDxn - configure direction of pin (1 output, 0 input)\n          PORTxn  - INPUT configure pullup (1 - activated)\n                  - OUTPUT configure 1 - high and 0 - low\n          PINxn - toggle value\n\n     To enable the Pin Interrup set\n          SREG set I-bit (p.9)\n          PCICR set PCIE1\n          PCMSK0-2 set corresponding pin with PCINT0-23 (p.91)\n\n     Three different Interrupt vectors\n     PCICR\n          PCIE0\n          PCIE1\n          PCIE2\n\n     ADC 0-5 corresponds to PCINT8-13\n     PCMSK1 (p.95)\n\n     Set PWM for certain registers\n\n\n\n     RC - REMOTE CONTROL TQi:\n          MODES:\n                  CRAWL-MODE:\n                  Reverse without braking (immediate reverse)\n          CH1 - Steering          [1,2] = [left, right] angle\n          CH2 - Throttle          [1,2] = [reverse, forward] velocity\n          CH3 - Transmisssion     [1,2] = [low, high] gear\n                  Shift Channel - (Red Switch on same height as throttle lever)\n          CH4 - Differential F    [1,2] = [unlocked, locked] differential\n                  T-Lock Switch - (top lever) forward\n          Ch5 - Differential F    [1,2] = [unlocked, locked] differential\n                  T-Lock Switch - (top lever) forward\n\n          DIFFERENTIAL-LOGIC\n          CH4     |       CH5     |       CONFIG          |       lever-position          |\n          (ms)    |      (ms)     |        Unit           |       lever-position          |\n           1      |       1       |   f&r unlocked       .|              back             |\n           2      |       1       |  f. locked r. unlock  |              back             |\n           2      |       2       |   f&r locked          |              back             |\n\n\n     ROS configuration\n          make library\n          publish with same frequency, no interrupts while sending msgs\n          receive control signals\n          rc interrupt if control signal flips\n          send actuated control signals 30 Hz\n          send V, I, RESET\n\n    Pin to interrupt map:\n      D digital, A analog\n    D8-D13                = PCINT 0-5     = PCIR0 = PB = PCIE0 = pcmsk0\n    A0-A5 (D14-D19)       = PCINT 8-13    = PCIR1 = PC = PCIE1 = pcmsk1\n    D0-D7                 = PCINT 16-23   = PCIR2 = PD = PCIE2 = pcmsk2\n\n*/\n\n/*\n   DEFINE MACROS\n*/\n  #define F_IO 16000000\n  #define BAUD_RATE 57600\n  #define ANALOG_RES 1024                                 // (10bit)\n  #define VALUE_IS(PINX,PINn) ((PINX&PINn)==PINn)         // RIP - 2h debugging ()!!!\n  #define REALTIME_ACTIVE() (SREG &= uint8_t(~0x80))\n  #define REALTIME_INACTIVE() (SREG |= 0x80)\n// IDENTIFIERS\n  #define PWM_LOW 1000\n  #define PWM_NEUTRAL 1500\n  #define PWM_HIGH 2000\n  #define PWM_THRESHOLD 500\n// BIT MASK\n  #define BIT0 1\n  #define BIT1 2\n  #define BIT2 4\n  #define BIT3 8\n  #define BIT4 16\n  #define BIT5 32\n  #define BIT6 64\n  #define BIT7 128\n// INPUT PINS - DIGITAL         // (PCINT)\n  #define INP_STEER 18            // (12)         // ti 1\n  #define INP_VEL 8               // (0)          // ti 2\n  #define INP_TRANS 7             // (23)         // ti 3\n  #define INP_DIFF_F 4            // (20)         // ti 4\n  #define INP_DIFF_R 2            // (18)         // ti 5\n// OUTPUT PINS (PWM)\n  #define OUT_STEER 9\n  #define OUT_VEL 10\n  #define OUT_TRANS 6\n  #define OUT_DIFF_F 5\n  #define OUT_DIFF_R 3\n  #define OUT_LED 13\n\n/*\n   DEFINE BOOLEAN VARIABLES\n*/\n  volatile bool CONTROL_SW = false;\n  volatile bool CONTROL_REMOTE = true;\n  volatile bool DIAGNOSIS_ACTIVE = false;\n\n  volatile bool PWM_REMOTE_INIT[5] = {false, false, false, false, false};\n  volatile bool PWM_REMOTE_INPUT_UPDATED[5] = {false, false, false, false, false};\n  volatile bool PWM_SW_INPUT_UPDATED = false;\n  volatile bool IDLE_ACTIVE[5] = {false, false, false, false, false};\n  volatile bool IDLE_SW_ACTIVE = false;\n\n  //interrupt logic variables\n  volatile bool TMP_CONDITION = false;\n  volatile bool PWM_READ_HIGH[5] = {false, false, false, false, false};\n\n/*\n   DEFINE DATA VARIABLES\n*/\n  volatile uint8_t ctrl_code = 0;\n  Servo output[5];\n  volatile uint8_t ACTUATE[5] = {0, 0, 0, 0, 0};\n  // REMOTE PPM input period\n  volatile uint8_t T_REMOTE_in[5] = {0, 0, 0, 0, 0};\n  // REMOTE PPM input \n  volatile int8_t PPM_REMOTE_in[5] = {0,0,0,0,0};\n  // SW PPM input period\n  volatile uint8_t T_SW_in[5] = {0,0,0,0,0};\n  // SW PPM input \n  volatile int8_t PPM_SW_in[5] = {0,0,0,0,0};\n\n  // REMOTE interrupt timer\n  volatile long TMP_t[5] = {0,0,0,0,0};\n  volatile long TMP_T[5] = {0,0,0,0,0};\n\n  // REMOTE filter data in case of missed interrupts\n  uint8_t T_FILTER_MAX = 3;\n  volatile long ti_in[5] = {0, 0, 0, 0, 0};\n  volatile uint16_t T_REMOTE_init_step[5] = {0, 0, 0, 0, 0};\n  volatile uint16_t T_REMOTE_in_filtered[5] = {0, 0, 0, 0, 0};\n\n\n  // REMOTE interrupt - logic variables\n  volatile uint8_t schedule_ti2 = 0;\n  volatile uint8_t schedule_ti4 = 0;\n  volatile uint8_t schedule_ti2_n_idle_max = 4;\n  volatile uint8_t schedule_ti4_n_idle_max = 6;\n  volatile uint8_t idx = 0;                                             // Interrupt timer index [0,4]\n  volatile uint8_t seq_n = 0;\n  volatile uint8_t idx_int = 0;                                         // Interrupt index [0:2]\n  volatile uint8_t PIN_INT_MASK[5] = {BIT4, BIT0, BIT7, BIT4, BIT2};    // ti dependend bit\n  volatile uint8_t PIN_MASK[3] = {0x00, 0x00, 0x00};                    // mask for active pins in corresponding interrupt\n  volatile uint8_t PIN_V_CURR[3] = {0x00, 0x00, 0x00};                  // B, C, D\n  volatile uint8_t PIN_V_PREV[3] = {0x00, 0x00, 0x00};\n  volatile uint8_t PIN_V_COMP[3] = {0x00, 0x00, 0x00};\n\n/*\n   DEFINE TIMING VARIABLES\n*/\n  // ROS publish timing\n  volatile long ti_pub = 0;\n  volatile uint16_t T_pub = 100;                            // [T_pub] = s 10E-3\n\n  // REMOTE idle timing\n  volatile long ti_remote_idle[5] = {0, 0, 0, 0, 0};\n  volatile uint16_t T_remote_idle = 500;                    // [T_remote_idle] = s 10E-3\n\n  // SW idle timing\n  volatile long ti_sw_idle = 0;\n  volatile uint16_t T_sw_idle = 500;                    // [T_remote_idle] = s 10E-3\n\n  // DIAGNOSIS timing\n  volatile long ti_diag = 0;\n  volatile uint16_t T_diag = 500;                           // [T_diag] = s 10E-3\n\n  // LED timing\n  volatile long ti_led = 0;\n  volatile uint16_t T_led[5] = {100,500,1000,2000,4000};     // [T_led] = s 10E-3\n  volatile uint8_t IDX_LED_MODE = 1;\n\n\n/*\n  Define ROS network\n*/\n  void cb_ctrl_request(const low_level_interface::lli_ctrl_request data){\n    ti_sw_idle = millis();\n    if (CONTROL_SW){\n      PPM_SW_in[0] = data.steering;\n      PPM_SW_in[1] = data.velocity;\n      PPM_SW_in[2] = data.transmisssion;\n      PPM_SW_in[3] = data.differential_front;\n      PPM_SW_in[4] = data.differential_rear;\n      ctrl_code = data.ctrl_code;\n    }\n    else{;}\n    IDLE_SW_ACTIVE = false;\n    PWM_SW_INPUT_UPDATED = true;\n  }\n  ros::NodeHandle nh;\n  low_level_interface::lli_ctrl_request MSG_REQUEST;\n  low_level_interface::lli_ctrl_actuated MSG_ACTUATED;\n  ros::Publisher ctrl_actuated(\"/lli/ctrl_actuated\",&MSG_ACTUATED);\n  ros::Subscriber<low_level_interface::lli_ctrl_request> ctrl_request(\"/lli/ctrl_request\",&cb_ctrl_request );\n\n//std::vector<> input_msg; // TODO: add container for message iteration\n//std::vector<> output_msg;\n\n/*\n   Clear Screen\n*/\nvoid clear_screen() {\n  for (int i = 0;i<10;i++){\n      Serial.println(\"\"); \n  }\n} \n\n/*\n   Print binary\n*/\nvoid print_binary(uint8_t binary_number) {\n  for (uint8_t k = 0x80; k; k >>= 1) {\n    if (binary_number & k) {\n      Serial.print(\"1\");\n    }\n    else {\n      Serial.print(\"0\");\n    }\n  }\n  Serial.println(\"\");\n}\n\n/*\n  Transate period to pwm\n */\nvoid period_to_pwm(volatile long &input){\n        input = long( ((input-PWM_NEUTRAL)/(PWM_NEUTRAL-PWM_LOW))*100 );\n}\n\n/*\n  Transate pwm to period\n */\nvoid pwm_to_period(volatile long &input){\n        input = long( (float(input)/100)*(PWM_NEUTRAL-PWM_LOW) + PWM_NEUTRAL );\n}\n\n/*\n   saturate read pwm to keep period in range [1,2] ms and frequency 50 Hs with T=20ms\n*/\nvoid IS_VALID(volatile long &period, volatile boolean &valid) {\n  valid = true;\n  if (((PWM_LOW - PWM_THRESHOLD) < period) && (period < PWM_LOW)) {\n    period = PWM_LOW;\n\n  }\n  else if ((PWM_HIGH < period) && (period < (PWM_HIGH + PWM_THRESHOLD))) {\n    period = PWM_HIGH;\n  }\n  else if ((PWM_LOW < period) && (period < PWM_HIGH)) {\n    period = period;\n  }\n  else {\n    period = PWM_NEUTRAL;\n    valid = false;\n  }\n}\n\n/*\n    Interrupt Service Routines\n    Use Interrupt Vector and determine which pin is changed\n\n*/\nISR(PCINT0_vect) {\n  idx = 1;               //interrupt only used for one pin   \n  TMP_t[idx] = micros();                       \n  idx_int = 0;\n  PIN_V_CURR[idx_int] = PINB & PIN_MASK[idx_int];\n  PIN_V_COMP[idx_int] = PIN_V_CURR[idx_int] ^ PIN_V_PREV[idx_int];\n                            \n  if (PIN_V_COMP[idx_int]&PIN_INT_MASK[idx]) {  //ti1    \n    if (VALUE_IS(PIN_V_CURR[idx_int], PIN_INT_MASK[idx])) {\n      ti_in[idx] = TMP_t[idx];\n      PWM_READ_HIGH[idx] = true;\n    }\n    else if (PWM_READ_HIGH[idx]) {\n      TMP_T[idx] = TMP_t[idx] - ti_in[idx];\n      PWM_REMOTE_INPUT_UPDATED[idx] = true;\n      PWM_READ_HIGH[idx] = false;\n    }\n    else {\n      PWM_READ_HIGH[idx] = false;\n    }\n  }\n  else {;}\n  PIN_V_PREV[idx_int] = PIN_V_CURR[idx_int];\n}\nISR(PCINT1_vect) {\n  idx = 0;            //interrupt only used for one pin \n  TMP_t[idx] = micros();\n  idx_int = 1;\n  PIN_V_CURR[idx_int] = PINC & PIN_MASK[idx_int];\n  PIN_V_COMP[idx_int] = PIN_V_CURR[idx_int] ^ PIN_V_PREV[idx_int];\n\n  if (PIN_V_COMP[idx_int]&PIN_INT_MASK[idx]) { //ti0\n    if (VALUE_IS(PIN_V_CURR[idx_int], PIN_INT_MASK[idx])) {\n      ti_in[idx] = TMP_t[idx];\n      PWM_READ_HIGH[idx] = true;\n    }\n    else if (PWM_READ_HIGH[idx]) {\n      TMP_T[idx] = TMP_t[idx] - ti_in[idx];\n      //Serial.println(TMP_T[idx]);\n      PWM_REMOTE_INPUT_UPDATED[idx] = true;\n      PWM_READ_HIGH[idx] = false;\n    }\n    else {\n      PWM_READ_HIGH[idx] = false;\n    }\n  }\n  else {\n    ;// trigger error boolean flag Serial.println(\"Mysterious interrupt\");\n  }\n  PIN_V_PREV[idx_int] = PIN_V_CURR[idx_int];\n}\nISR(PCINT2_vect) { //non-time-sensitive interrupts\n  idx_int = 2;\n  PIN_V_CURR[idx_int] = PIND & PIN_MASK[idx_int];\n  PIN_V_COMP[idx_int] = PIN_V_CURR[idx_int] ^ PIN_V_PREV[idx_int];\n\n  if (schedule_ti2 > 0) {\n    PIN_V_COMP[idx_int] &= (~PIN_INT_MASK[2]);\n    schedule_ti2 -= 1;\n  }\n  else {;}\n\n  if (schedule_ti4) {\n    PIN_V_COMP[idx_int] &= (~PIN_INT_MASK[4]);\n    schedule_ti4 -= 1;\n\n  }\n  else {;}\n\n\n  if ( (PIN_V_COMP[idx_int] & PIN_INT_MASK[2]) == PIN_INT_MASK[2]) { //ti2\n    idx = 2;\n    TMP_t[idx] = micros();\n    if (VALUE_IS(PIN_V_CURR[idx_int], PIN_INT_MASK[idx])) {\n      ti_in[idx] = TMP_t[idx];\n      PWM_READ_HIGH[idx] = true;\n    }\n    else if (PWM_READ_HIGH[idx]) {\n      TMP_T[idx] = TMP_t[idx] - ti_in[idx];\n      PWM_REMOTE_INPUT_UPDATED[idx] = true;\n      PWM_READ_HIGH[idx] = false;\n      schedule_ti2 = schedule_ti2_n_idle_max;\n    }\n    else {\n      PWM_READ_HIGH[idx] = false;\n    }\n  }\n  else if ((PIN_V_COMP[idx_int] & PIN_INT_MASK[3]) == PIN_INT_MASK[3]) { // ti3\n    idx = 3;\n    TMP_t[idx] = micros();\n    //Serial.print(\"I made it \"); Serial.println(ti_in[idx]);\n    //print_binary(PIN_V_CURR[idx_int]&PIN_INT_MASK[idx]);\n    if (VALUE_IS(PIN_V_CURR[idx_int], PIN_INT_MASK[idx])) {\n      ti_in[idx] = TMP_t[idx];\n      PWM_READ_HIGH[idx] = true;\n\n    }\n    else if (PWM_READ_HIGH[idx]) {\n      TMP_T[idx] = TMP_t[idx] - ti_in[idx];\n      PWM_REMOTE_INPUT_UPDATED[idx] = true;\n      PWM_READ_HIGH[idx] = false;\n    }\n    else {\n      PWM_READ_HIGH[idx] = false;\n    }\n  }\n  else if ( (PIN_V_COMP[idx_int] & PIN_INT_MASK[4]) == PIN_INT_MASK[4] ) { //ti4\n    idx = 4;\n    TMP_t[idx] = micros();\n    if (VALUE_IS(PIN_V_CURR[idx_int], PIN_INT_MASK[idx])) {\n      ti_in[idx] = TMP_t[idx];\n      PWM_READ_HIGH[idx] = true;\n    }\n    else if (PWM_READ_HIGH[idx]) {\n      TMP_T[idx] = TMP_t[idx] - ti_in[idx];\n      PWM_REMOTE_INPUT_UPDATED[idx] = true;\n      PWM_READ_HIGH[idx] = false;\n      schedule_ti4 = schedule_ti4_n_idle_max;\n    }\n    else {\n      PWM_READ_HIGH[idx] = false;\n    }\n  }\n  else {\n    ;// trigger error boolean flag Serial.println(\"Mysterious interrupt\");\n  }\n  PIN_V_PREV[idx_int] = PIN_V_CURR[idx_int];\n}\n\n/*\n  Switching Logic for Control Mode\n*/\nvoid update_control_state() {\n  if (TRIGGER_REMOTE_CONTROL) { //activate remote control\n    if (CONTROL_SW) {\n      CONTROL_SW = false;\n      CONTROL_REMOTE = true;\n    }\n    else {\n      ;\n    }\n  }\n  else if (TRIGGER_SW_CONTROL) { // activate software/algorithm control\n    if (CONTROL_REMOTE) {\n      CONTROL_REMOTE = false;\n      CONTROL_SW = true;\n      for (int k = 0; k < 5; k++) {\n        PWM_REMOTE_INIT[k] = 0;\n        T_REMOTE_init_step[k] = 0;\n        T_REMOTE_in_filtered[k] = PWM_NEUTRAL;\n      }\n    }\n    else {\n      ;\n    }\n\n  }\n  else {;\n  }\n}\n\n/*\n   update pwm from interrupts\n*/\nvoid update_input_pwm_periods() {\n  if (CONTROL_REMOTE) {\n    for (int k = 0; k < 5; k++) {\n      if (PWM_REMOTE_INPUT_UPDATED[k]) {\n        PWM_REMOTE_INPUT_UPDATED[k] = false; \n        ti_remote_idle[k] = millis();                                           // reset idle counter\n\n        TMP_CONDITION = false;\n        IS_VALID(TMP_T[k], TMP_CONDITION);\n        if (TMP_CONDITION) {\n          T_REMOTE_in[k] = TMP_T[k];                                             // might include lock on interrupt ISR here\n          if ((!PWM_REMOTE_INIT[k]) ) {\n            T_REMOTE_in_filtered[k] = long( (T_REMOTE_in_filtered[k] + T_REMOTE_in[k]) / 2);\n            T_REMOTE_init_step[k]++;\n            if (T_REMOTE_init_step[k] > T_FILTER_MAX) {\n              T_REMOTE_init_step[k] = 0;\n              PWM_REMOTE_INIT[k] = true;\n            }\n            else {;}\n          }\n          else if (PWM_INPUT_INITIALISED) {\n            IDLE_ACTIVE[k] = false;\n            T_REMOTE_in_filtered[k] = long( (T_REMOTE_in_filtered[k] + T_REMOTE_in[k]) / 2);\n            PPM_REMOTE_in[k] = period_to_pwm(T_REMOTE_in_filtered[k]);\n          }\n          else {;}\n        }\n        else {;}\n      }\n      else {\n        if (millis() - ti_remote_idle[k] > T_remote_idle) {\n          T_REMOTE_in_filtered[k] = PWM_NEUTRAL;\n          PWM_REMOTE_INIT[k] = false;\n          IDLE_ACTIVE[k] = true;\n        }\n        else {;}\n      }\n      PPM_REMOTE_in[k] = period_to_pwm(T_REMOTE_in_filtered[k]);\n    }\n  }\n  else if (CONTROL_SW&&PWM_SW_INPUT_UPDATED) {\n    PWM_SW_INPUT_UPDATED = false;               // reset trigger condition for next callback\n    for(uint8_t k = 0;k<5;k++){\n      T_SW_in[k] = pwm_to_period(PPM_SW_in[k]);\n    }\n  }\n  else {\n    ; // might throw error here or do something in case of no CONTROL MODE\n  }\n}\n/*\n  ROS publishing data\n*/\nvoid ROS_publish() {\n  noInterrupts();\n  if ((millis()-ti_pub)>T_pub){\n    ti_pub=millis();\n    ctrl_actuated.publish(&MSG_ACTUATED);\n  }\n  else{;}\n  interrupts();\n}\n\n/*\n  Send actuation PPM\n    considers idle and initialisation of remote input\n    for software only the idle condition\n\n*/\nvoid actuate() {\n\n  //DEFINE OUTPUT SIGNAL BASED ON CONTROL MODE\n  if (CONTROL_REMOTE) {\n    //ACTIVATE ALL INTERRUPTS\n    for (uint8_t k = 0; k < 5; k++) {\n      if (PWM_REMOTE_INIT[k] && (!IDLE_ACTIVE[k])) {\n        ACTUATE[k] = T_REMOTE_in_filtered[k];\n      }\n      else {\n        ACTUATE[k] = PWM_NEUTRAL;\n      }\n    }\n  }\n  else if (CONTROL_SW) {\n    if (!IDLE_SW_ACTIVE){\n      for (uint8_t k = 0; k < 5; k++) {\n      }\n    }\n    else{\n      ACTUATE[k] = PWM_NEUTRAL;\n    }  \n  }\n  else {\n\n  }\n\n  //ACTUATE OUTPUT SIGNAL TO output channels\n  for (uint8_t k = 0 ; k < 5; k++) {\n    output[k].writeMicroseconds(ACTUATE[k]);\n  }\n}\n\n/*\n   Updating Measurements (inactive: TODO)\n*/\nvoid update_measurements() {\n  ; // TODO: read voltage, current, calc energy, allow reset\n  //\n}\n\n/*\n   Adapting LED signaling state\n*/\nvoid blink_led() {\n  static boolean STATUS = 0;\n  if (( millis() - ti_led) > T_led[IDX_LED_MODE] ) {\n    STATUS = !STATUS;\n    digitalWrite(LED_BUILTIN, STATUS);\n    ti_led = millis();\n  }\n  else {;}\n}\n\n/*\n   Print diagnosis\n*/\nvoid print_diagnosis() {\n  if (DIAGNOSIS_ACTIVE) {\n    if ((millis() - ti_diag) > T_diag) {\n      clear_screen();\n      /*\n        print_binary(SREG);\n        print_binary(PCICR);\n        print_binary(PCIFR);\n        print_binary(PIN_MASK[0]);\n        print_binary(PIN_MASK[1]);\n        print_binary(PIN_MASK[2]);\n        Serial.println(\"\");\n        print_binary(PCMSK0);\n        print_binary(PCMSK1);\n        print_binary(PCMSK2);\n      */\n      Serial.println(\"\");\n      ti_diag = millis();\n      for (int k = 0; k < 5; k++) {\n        Serial.print(\"Ti \" ); Serial.print(k);\n        Serial.print(\" NEW_T: \"); Serial.print(PWM_REMOTE_INPUT_UPDATED[k]);\n        Serial.print(\": T_filtered: \"); Serial.print(T_REMOTE_in_filtered[k]);\n        Serial.print(\": init_step: \"); Serial.print(T_REMOTE_init_step[k]);\n        Serial.print(\" INIT: \"); Serial.print(PWM_REMOTE_INIT[k]);\n        Serial.print(\": IDLE-active: \" ); Serial.println(IDLE_ACTIVE[k]);\n      }\n    }\n    else {\n      ;\n    }\n  }\n}\n/*\n  Check Idle condition for remote and sw\n*/\nvoid check_idle_condition(){\n  if ((millis()-ti_remote_idle)>T_remote_idle){\n\n  }\n  else\n}\n/*\n   Configuration of Registers and User Variables\n*/\nvoid setup()\n{\n  // reset all configuration registers\n  DDRB &= 0x00;\n  DDRC &= 0x00;\n  DDRD &= 0x00;\n  PORTB &= 0x00;\n  PORTC &= 0x00;\n  PORTD &= 0x00;\n\n  // set directions\n  //define inputs\n  PIN_MASK[0] = (0x01); // PINS on PortB FOR PCINT\n  PIN_MASK[1] = (0x10); // PINS on PortC FOR PCINT\n  PIN_MASK[2] = (0x04) | (0x10) | (0x80); // PINS on PortD FOR PCINT\n\n  // DDRB: output - PB1,PB2, PB3, PB6, (OC1A, OC1B,OC2A,TOSC1)\n  DDRB |= 0x02; DDRB |= 0x04; DDRB |= 0x08; DDRB |= 0x40; DDRB &= (~PIN_MASK[0]);\n  DDRC &= 0x00; DDRC &= (~PIN_MASK[1]);\n  DDRD &= 0x00; DDRD &= (~PIN_MASK[2]);\n\n  // configure pull-ups\n  PORTB |= PIN_MASK[0];\n  PORTC |= PIN_MASK[1];\n  PORTD |= PIN_MASK[2];\n\n  // read values - setting 1, changes input configuration in PORTxn\n  PINB |= 0x00;\n  PINC |= 0x00;\n  PIND |= 0x00;\n\n  // configure all three interrupt\n  PCICR |= 0x07;\n  PCIFR = 0x00;\n  PCMSK0 |= 0x01; // PCINT[7:0]\n  PCMSK1 |= 0x10; // PCINT[15:8]\n  PCMSK2 |= 0x04; PCMSK2 |= 0x10; PCMSK2 |= 0x84; // PCINT[23:16] // activate PCINT16\n\n  //Initialise Variables with current Pin Input ignore rest\n  PIN_V_CURR[0] = PINB & (~PIN_MASK[0]);\n  PIN_V_PREV[0] = PINB & (~PIN_MASK[0]);\n  PIN_V_COMP[0] = 0x00;\n  PIN_V_CURR[1] = PINC & (~PIN_MASK[1]);\n  PIN_V_PREV[1] = PINC & (~PIN_MASK[1]);\n  PIN_V_COMP[1] = 0x00;\n  PIN_V_CURR[2] = PIND & (~PIN_MASK[2]);\n  PIN_V_PREV[2] = PIND & (~PIN_MASK[2]);\n  PIN_V_COMP[2] = 0x00;\n\n  // Configure outputs\n  output[0].attach(5);\n  output[1].attach(6);\n  output[2].attach(9);\n  output[3].attach(10);\n  output[4].attach(11);\n\n  // ROS setup\n  nh.initNode();\n  nh.advertise(ctrl_actuated);\n  nh.subscribe(ctrl_request);\n}\n\n/*\n   The main logic loop algorithm\n*/\nvoid loop()\n{\n  //update_control_state();\n  //update_measurements();\n  update_input_pwm_periods();\n  actuate();\n  ROS_publish_data();\n  //print_diagnosis();\n  //blink_led();\n  nh.spinOnce();\n}",
+			"file": "low-level-interface-source/low-level-interface-source.ino",
+			"file_size": 21407,
+			"file_write_time": 131826163090952742,
+			"settings":
+			{
+				"buffer_size": 21393,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/flip/workspaces/itrl/trx/src/low_level_interface",
+		"/home/flip/workspaces/itrl/trx/src/low_level_interface/low-level-interface-source",
+		"/home/flip/workspaces/itrl/trx/src/low_level_interface/low-level-interface-source-servo"
+	],
+	"file_history":
+	[
+		"/home/flip/workspaces/itrl/trx/src/low_level_interface/low-level-interface-source-servo/low-level-interface-source-servo.ino",
+		"/home/flip/Documents/Administrative/itrl_fd18_network/Webpage/web_interface/css/web_interface.css",
+		"/home/flip/Documents/Administrative/itrl_fd18_network/Webpage/web_interface/query.js",
+		"/home/flip/Documents/Administrative/itrl_fd18_network/Webpage/web_interface/insert.js",
+		"/home/flip/Documents/Administrative/itrl_fd18_network/Webpage/web_interface/index.html",
+		"/mnt/fd18/css/web_interface.css"
+	],
+	"find":
+	{
+		"height": 40.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"TMP",
+			"T_idle",
+			"ti_idle[",
+			"PWM_INPUT_UPDATED[",
+			"PWM_INPUT_INITIALISED[",
+			"T_update_max",
+			"T_initialised_n[",
+			"T_in_smoothed[",
+			"T_in[",
+			"T_in ",
+			"T_in"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"T_remote_idle",
+			"ti_remote_idle[",
+			"PWM_REMOTE_INPUT_UPDATED[",
+			"PWM_REMOTE_INIT[",
+			"T_FILTER_MAX",
+			"T_REMOTE_init_step[",
+			"T_REMOTE_in_filtered[",
+			"T_REMOTE_in["
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "low-level-interface-source/low-level-interface-source.ino",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21393,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								21393
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1315.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 127.0
+	},
+	"pinned_build_system": "",
+	"project": "lli.sublime-project",
+	"replace":
+	{
+		"height": 71.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 256.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
