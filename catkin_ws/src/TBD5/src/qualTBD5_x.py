@@ -7,7 +7,7 @@ import math
 from nav_msgs.msg import Odometry
 
 
-pub = rospy.Publisher('odometry_body_frame',nav_msgs, queue_size=1)
+pub = rospy.Publisher('odometry_body_frame',Odometry, queue_size=1)
 
 
 def to_positive(angle):
@@ -55,6 +55,7 @@ def odometry_callback(odometry_msg):
 
 	b_vel_x = g_vel_x * cos(yaw) + g_vel_y * sin(yaw)
 	b_vel_y = g_vel_x * cos(yaw) - g_vel_y * sin(yaw)   #compute body frame velocity
+	b_vel = abs(math.sqrt(b_vel_x ** 2 + b_vel_y ** 2))
 
 	#ang_vel_pitch = (pitch-old_pitch[-1])/dt
 	#ang_vel_yaw = (yaw-old_yaw[-1])/dt
@@ -65,12 +66,12 @@ def odometry_callback(odometry_msg):
 	#old_pitch.append(pitch)
 	#old_yaw.append(yaw)
 
-	qualisys_data = nav_msgs.msg()
-	qualisys.data.pose.pose.position.x = odom_position_x
-	qualisys.data.pose.pose.position.y = odom_position_y
-	qualisys.data.pose.orientation.z = yaw
-	qualisys.data.twist.twist.velocity.x = b_vel_x
-	qualisys.data.twist.twist.velocity.y = b_vel_y
+	qualisys_data = Odometry()
+	qualisys_data.pose.pose.position.x = odom_position_x
+	qualisys_data.pose.pose.position.y = odom_position_y
+	qualisys_data.pose.orientation.z = yaw
+	qualisys_data.twist.twist.velocity.x = b_vel
+	
 
 	pub.publish(qualisys_data)
 
