@@ -37,7 +37,7 @@ class ShapeHandler:
         elif shape_name == "CIRCLE": return self.CIRCLE
         elif shape_name == "ELLIPSE": return self.ELLIPSE
 
-    def load_traj_msg(self, traj_x, traj_y, traj_yaw):
+    def load_traj_msg(self, traj_x, traj_y):
 
         if not len(traj_x) == len(traj_y):
             raise ValueError("Trajectory not built correctly")
@@ -47,7 +47,6 @@ class ShapeHandler:
             pose = Pose()
             pose.position.x = traj_x[i]
             pose.position.y = traj_y[i]
-            pose.orientation.z = traj_yaw[i]
             traj_pose_array.poses.append(pose)
         return traj_pose_array
 
@@ -55,9 +54,9 @@ class ShapeHandler:
         now = rospy.get_time()
 
         if now-self.last_time > 2:
-            self.traj_x, self.traj_y, self.traj_yaw = self.gen_traj()
+            self.traj_x, self.traj_y = self.gen_traj()
 
-            msg = self.load_traj_msg(self.traj_x, self.traj_y, self.traj_yaw)
+            msg = self.load_traj_msg(self.traj_x, self.traj_y)
             self.traj_pub.publish(msg)
 
             self.last_time = now
