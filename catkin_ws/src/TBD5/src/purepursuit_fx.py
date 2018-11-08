@@ -1,46 +1,50 @@
 #!/usr/bin/env python
 
-import numpy as np
-import math
-import matplotlib.pyplot as plt
 import rospy
-
+import math
+import numpy as np
 
 from geometry_msgs.msg import Twist
 
-pub = rospy.Publisher('PP_control', Twist, queue_size=10)
-rospy.init_node('pure_pursuit', anonymous=True)
-rate = rospy.Rate(10) # 10hz
-        
 
-  
+######################
+# TUNABLE PARAMETERS #
+######################
 
 k = 0.1  # look forward gain
 Lfc = 1.0  # look-ahead distance
 Kp = 1.0  # speed propotional gain
-dt = 0.1  # [s]
-L = 2.9  # [m] wheel base of vehicle change according to our car --> length of the car
+L = 0.32  # [m] wheel base of vehicle change according to our car --> length of the car
+
+target_speed = 10.0 / 3.6  # [m/s]
+
+####################
+# GLOBAL VARIABLES #
+####################
+
+# initialized state
+x = []
+y = []
+yaw = []
+v = []
 
 
+#####################
+# CLASS DEFINITIONS #
+#####################
 
 class State:
 
-    def __init__(self, x=odom_position_x, y=0.0, yaw=0.0, v=0.0):
+    def __init__(self, x=0.0, y=0.0, yaw=0.0, v=0.0):
         self.x = x
         self.y = y
         self.yaw = yaw
         self.v = v
 
 
-def update(state, delta):
-
-    state.x = state.x + state.v * math.cos(state.yaw) * dt
-    state.y = state.y + state.v * math.sin(state.yaw) * dt
-    state.yaw = state.yaw + state.v / L * math.tan(delta) * dt
-    state.v = state.v  #constant speed 
-
-    return state
-
+##############
+# CONTROLLER #
+##############
 
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
 
@@ -90,59 +94,41 @@ def calc_target_index(state, cx, cy):
     return ind
 
 
+#######
+# ROS #
+#######
+
+# TODO: put these three lines in the right place
+# state = State()
+# target_ind = calc_target_index(state, cx, cy)
+# di, target_ind = pure_pursuit_control(state, cx, cy, target_ind)
+
+pub = rospy.Publisher('PP_control', Twist, queue_size=10)
+rospy.init_node('pure_pursuit', anonymous=True)
+rate = rospy.Rate(30) # 30 [Hz]
+
+def traj_callback(trajectory_msg): #to be changed
+
+        linear_x = twist_msg.linear.x
+        angular_z = twist_msg.angular.z
+        control_request = lli_ctrl_request()
+        control_request.steering = angular_z
+        control_request.velocity = linear_x
+        pub.publish(control_request)
+
+
+########
+# MAIN #
+########
+
 def main():
-    #  target course
-    
 
-    target_speed = 10.0 / 3.6  # [m/s]
+    rospy.init_node('pure_pursuit_controller')
 
-    T = 100.0  # max simulation time
+    traj_sub = rospy.Subscriber('/nav_traj' + self.id, PoseArray, traj_callback)
 
-    # initial state
-    state = State(x=-0.0, y=-3.0, yaw=0.0, v=)
+    rospy.spin()
 
-    lastIndex = len(cx) - 1
-    time = 0.0
-    x = [state.x]
-    y = [state.y]
-    yaw = [state.yaw]
-    v = [state.v]
-    t = [0.0]
-    target_ind = calc_target_index(state, cx, cy)
-
-    while T >= time and lastIndex > target_ind:
-        di, target_ind = pure_pursuit_control(state, cx, cy, target_ind)
-        state = update(state, di)
-
-        time = time + dt
-
-        x.append(state.x)
-        y.append(state.y)
-        yaw.append(state.yaw)
-        v.append(state.v)
-        t.append(time)
-
-
-while not rospy.is_shutdown():
-        pub.publish(pure_pursuit)
-        rate.sleep()
 
 if __name__ == '__main__':
-main()
-
-def callback(trajectory_msg): #to be changed
-
-	linear_x = twist_msg.linear.x
-	angular_z = twist_msg.angular.z
-	control_request = lli_ctrl_request()
-	control_request.steering = angular_z
-	control_request.velocity = linear_x 
-	pub.publish(control_request)
-
-
-rospy.init_node('topic_subscriber')
-sub = rospy.Subscriber('/nav_traj' + self.id, PoseArray, callback)
- 
-        self.last_time = rospy.get_time()
-rospy.spin()
-
+    main()
