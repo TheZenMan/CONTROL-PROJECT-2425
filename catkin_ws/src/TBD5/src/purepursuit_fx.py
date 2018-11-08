@@ -104,21 +104,20 @@ def calc_target_index(state, cx, cy):
 # target_ind = calc_target_index(state, cx, cy)
 # di, target_ind = pure_pursuit_control(state, cx, cy, target_ind)
 
-pub = rospy.Publisher('PP_control', Twist, queue_size=10)
-rospy.init_node('pure_pursuit', anonymous=True)
-rate = rospy.Rate(30) # 30 [Hz]
+pub = rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 traj = []
 # state = State()
 
 def odom_callback(odometry_msg):
 	if traj not empty:
-	linear_x = b_vel
-	angular_z = twist_msg.yaw
+	linear_x = odometry_msg.b_vel
+	angular_z = odometry_msg.yaw
 	# target_ind = calc_target_index(state, cx, cy)
 	control_request = lli_ctrl_request()
         control_request.steering = angular_z
         control_request.velocity = linear_x
-	pub.publish(control_request)
+	while not rospy.is_shutdown():	
+		pub.publish(control_request)
 
 def traj_callback(trajectory_msg): #to be changed
 
@@ -133,7 +132,8 @@ def traj_callback(trajectory_msg): #to be changed
 def main():
 
     rospy.init_node('pure_pursuit_controller')
-	
+    rate = rospy.Rate(30) # 30 [Hz]	
+
     odom_sub = rospy.Subscriber('odometry_body_frame', Odometry, odom_callback)
     traj_sub = rospy.Subscriber('/nav_traj' + self.id, PoseArray, traj_callback)
 
