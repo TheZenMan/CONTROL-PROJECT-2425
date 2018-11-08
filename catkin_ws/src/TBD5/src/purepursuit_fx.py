@@ -5,6 +5,7 @@ import math
 import numpy as np
 
 from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 
 
 ######################
@@ -106,15 +107,23 @@ def calc_target_index(state, cx, cy):
 pub = rospy.Publisher('PP_control', Twist, queue_size=10)
 rospy.init_node('pure_pursuit', anonymous=True)
 rate = rospy.Rate(30) # 30 [Hz]
+traj = []
+# state = State()
+
+def odom_callback(odometry_msg):
+	if traj not empty:
+	linear_x = b_vel
+	angular_z = twist_msg.yaw
+	# target_ind = calc_target_index(state, cx, cy)
+	control_request = lli_ctrl_request()
+        control_request.steering = angular_z
+        control_request.velocity = linear_x
+	pub.publish(control_request)
 
 def traj_callback(trajectory_msg): #to be changed
 
-        linear_x = twist_msg.linear.x
-        angular_z = twist_msg.angular.z
-        control_request = lli_ctrl_request()
-        control_request.steering = angular_z
-        control_request.velocity = linear_x
-        pub.publish(control_request)
+	traj = msg.traj
+        
 
 
 ########
@@ -124,7 +133,8 @@ def traj_callback(trajectory_msg): #to be changed
 def main():
 
     rospy.init_node('pure_pursuit_controller')
-
+	
+    odom_sub = rospy.Subscriber('odometry_body_frame', Odometry, odom_callback)
     traj_sub = rospy.Subscriber('/nav_traj' + self.id, PoseArray, traj_callback)
 
     rospy.spin()
