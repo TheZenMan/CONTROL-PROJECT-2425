@@ -2,6 +2,7 @@
 
 import rospy
 import tf
+import math
 
 from nav_msgs.msg import Odometry
 
@@ -29,6 +30,10 @@ def odometry_callback(odometry_msg):
 	ori_y = odometry_msg.pose.pose.orientation.y
 	ori_z = odometry_msg.pose.pose.orientation.z
 	ori_w = odometry_msg.pose.pose.orientation.w
+	
+	g_vel_x = odometry_msg.twist.twist.velocity.x
+	g_vel_y = odometry_msg.twist.twist.velocity.y
+
 
 	#quaternion = odometry_msg.pose.pose.orientation
 	quaternion = (ori_x, ori_y, ori_z, ori_w)
@@ -45,24 +50,27 @@ def odometry_callback(odometry_msg):
 
 	#dt = odometry_msg.header.seq
 
-	vel_x= (odom_position_x-old_pos_x[-1])/dt
-	vel_y= (odom_position_y-old_pos_y[-1])/dt
+	#vel_x= (odom_position_x-old_pos_x[-1])/dt
+	#vel_y= (odom_position_y-old_pos_y[-1])/dt
+
+	b_vel_x = g_vel_x * cos(yaw) + g_vel_y * sin(yaw)
+	b_vel_y = g_vel_x * cos(yaw) - g_vel_y * sin(yaw)   #compute body frame velocity
 
 	#ang_vel_pitch = (pitch-old_pitch[-1])/dt
-	ang_vel_yaw = (yaw-old_yaw[-1])/dt
+	#ang_vel_yaw = (yaw-old_yaw[-1])/dt
 
 
-	old_pos_x.append(odom_position_x)
-	old_pos_y.append(odom_position_y)
+	#old_pos_x.append(odom_position_x)
+	#old_pos_y.append(odom_position_y)
 	#old_pitch.append(pitch)
-	old_yaw.append(yaw)
+	#old_yaw.append(yaw)
 
 	qualisys_data = nav_msgs.msg()
 	qualisys.data.pose.pose.position.x = odom_position_x
 	qualisys.data.pose.pose.position.y = odom_position_y
 	qualisys.data.pose.orientation.z = yaw
-	qualisys.data.twist.twist.x = vel_x
-	qualisys.data.twist.twist.y = vel_y
+	qualisys.data.twist.twist.velocity.x = b_vel_x
+	qualisys.data.twist.twist.velocity.y = b_vel_y
 
 	pub.publish(qualisys_data)
 
