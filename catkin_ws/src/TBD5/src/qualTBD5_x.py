@@ -55,6 +55,7 @@ def odometry_callback(odometry_msg):
 
 	b_vel_x = g_vel_x * cos(yaw) + g_vel_y * sin(yaw)
 	b_vel_y = g_vel_x * cos(yaw) - g_vel_y * sin(yaw)   #compute body frame velocity
+	b_vel = abs(math.sqrt(b_vel_x ** 2 + b_vel_y ** 2))
 
 	#ang_vel_pitch = (pitch-old_pitch[-1])/dt
 	#ang_vel_yaw = (yaw-old_yaw[-1])/dt
@@ -69,8 +70,8 @@ def odometry_callback(odometry_msg):
 	qualisys.data.pose.pose.position.x = odom_position_x
 	qualisys.data.pose.pose.position.y = odom_position_y
 	qualisys.data.pose.orientation.z = yaw
-	qualisys.data.twist.twist.velocity.x = b_vel_x
-	qualisys.data.twist.twist.velocity.y = b_vel_y
+	qualisys.data.twist.twist.velocity.x = 
+	
 
 	pub.publish(qualisys_data)
 
