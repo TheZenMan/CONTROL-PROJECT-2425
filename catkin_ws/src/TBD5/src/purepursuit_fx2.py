@@ -7,6 +7,7 @@ import numpy as np
 from geometry_msgs.msg import Twist
 from  low_level_interface.msg import lli_ctrl_request
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped
 
 
 ######################
