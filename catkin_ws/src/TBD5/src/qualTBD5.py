@@ -8,6 +8,12 @@ from nav_msgs.msg import Odometry
 
 pub = rospy.Publisher('odometry_body_frame',nav_msgs, queue_size=1)
 
+def world_to_body(V_x,V_y, heading):
+    x_gv = math.cos(heading)*V_x + math.sin(heading)*V_y
+    y_gv = -math.sin(heading)*V_x + math.cos(heading)*V_y #goal to vehicle coordinates
+    return x_gv, y_gv
+
+
 
 def to_positive(angle):
 	while angle<0:
@@ -49,20 +55,26 @@ def odometry_callback(odometry_msg):
 	vel_y= (odom_position_y-old_pos_y[-1])/dt
 
 	#ang_vel_pitch = (pitch-old_pitch[-1])/dt
-	ang_vel_yaw = (yaw-old_yaw[-1])/dt
+    ang_vel_yaw = (yaw-old_yaw[-1])/dt
 
 
-	old_pos_x.append(odom_position_x)
-	old_pos_y.append(odom_position_y)
-	#old_pitch.append(pitch)
-	old_yaw.append(yaw)
+    old_pos_x.append(odom_position_x)
+    old_pos_y.append(odom_position_y)
+    #old_pitch.append(pitch)
+    old_yaw.append(yaw)
 
-	qualisys_data = nav_msgs.msg()
-	qualisys.data.pose.pose.position.x = odom_position_x
-	qualisys.data.pose.pose.position.y = odom_position_y
-	qualisys.data.pose.orientation.z = yaw
-	qualisys.data.twist.twist.x = vel_x
-	qualisys.data.twist.twist.y = vel_y
+    qualisys_data = nav_msgs.msg()
+    qualisys.data.pose.pose.position.x = odom_position_x
+    qualisys.data.pose.pose.position.y = odom_position_y
+    qualisys.data.pose.orientation.z = yaw
+
+
+
+    Velbody_x, Velbody_y = world_to_body(vel_x,vel_y , yaw)
+
+    qualisys.data.twist.twist.x = Velbody_x
+    qualisys.data.twist.twist.y = Velbody_y
+
 
 	pub.publish(qualisys_data)
 
