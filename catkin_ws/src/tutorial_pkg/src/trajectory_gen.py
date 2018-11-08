@@ -140,3 +140,17 @@ class ShapeHandler:
     def listener(self):
         while not rospy.is_shutdown():
             self.publish_path()
+
+
+def main():
+
+    # initialize ros
+    rospy.init_node('trajectory_planner')
+
+    planner_mode = rospy.get_param('/trajectory_planner/planner_mode', "LINE_SEGMENT")
+
+    shape_handler = ShapeHandler(planner_mode)
+    shape_handler.listener()
+
+if __name__ == '__main__':
+    main()
