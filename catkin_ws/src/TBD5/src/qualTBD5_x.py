@@ -70,7 +70,7 @@ def odometry_callback(odometry_msg):
 	qualisys.data.pose.pose.position.x = odom_position_x
 	qualisys.data.pose.pose.position.y = odom_position_y
 	qualisys.data.pose.orientation.z = yaw
-	qualisys.data.twist.twist.velocity.x = 
+	qualisys.data.twist.twist.velocity.x = b_vel
 	
 
 	pub.publish(qualisys_data)
