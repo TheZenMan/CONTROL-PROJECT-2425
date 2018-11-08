@@ -1,0 +1,10 @@
+<launch>
+
+	<include file="$(find qualisys)/launch/qualisys.launch"/>
+	<include file="$(find qualisys)/launch/qualisys_odom.launch">
+		<arg name="model" value="SVEA5"/>
+	</include>
+
+	<node pkg="TBD5" type="qualTBD5.py" name="qualTBD5" output="screen"></node>
+
+</launch>

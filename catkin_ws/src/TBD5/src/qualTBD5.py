@@ -2,10 +2,12 @@
 
 import rospy
 import tf
+
+import pdb
  
 from nav_msgs.msg import Odometry
 
-def to_positive(angle)
+def to_positive(angle):
 	while angle<0:
 		angle=angle+360
 	return angle
@@ -53,6 +55,7 @@ def callback(odometry_msg):
 	old_pitch.append(pitch)
 	old_yaw.append(yaw)
 	
+	pdb.set_trace()
 	
 	
 rospy.init_node('topic_subscriber')
