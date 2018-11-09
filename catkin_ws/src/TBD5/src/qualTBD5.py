@@ -53,8 +53,8 @@ def odometry_callback(odometry_msg):
 	#vel_x= (odom_position_x-old_pos_x[-1])/dt
 	#vel_y= (odom_position_y-old_pos_y[-1])/dt
 
-	b_vel_x = g_vel_x * cos(yaw) + g_vel_y * sin(yaw)
-	b_vel_y = g_vel_x * cos(yaw) - g_vel_y * sin(yaw)   #compute body frame velocity
+	b_vel_x = g_vel_x * cos(yaw) - g_vel_y * sin(yaw)
+	b_vel_y = g_vel_x * sin(yaw) + g_vel_y * cos(yaw)   #compute body frame velocity
 	b_vel = abs(sqrt(b_vel_x ** 2 + b_vel_y ** 2))
 
 	#ang_vel_pitch = (pitch-old_pitch[-1])/dt
@@ -72,8 +72,8 @@ def odometry_callback(odometry_msg):
 	qualisys_data.pose.pose.orientation.z = yaw
 	qualisys_data.twist.twist.linear.x = b_vel
 	
-
 	pub.publish(qualisys_data)
+
 
 rospy.init_node('qualTBD5_odom')
 sub = rospy.Subscriber('SVEA5/odom', Odometry, odometry_callback)
