@@ -2,7 +2,7 @@
 
 import rospy
 import tf
-from math import degrees, cos, sin, sqrt
+from math import degrees, cos, sin, sqrt, pi
 
 from nav_msgs.msg import Odometry
 
@@ -12,8 +12,8 @@ pub = rospy.Publisher('odometry_body_frame',Odometry, queue_size=1)
 
 def to_positive(angle):
 	while angle<0:
-		angle=angle+360
-	return angle
+		angle=angle + 2*pi
+	return angle - pi
 
 old_pos_x = []
 old_pos_y = []
@@ -49,7 +49,7 @@ def odometry_callback(odometry_msg):
 
 	#roll = to_positive(roll)
 	#pitch = to_positive(pitch)
-	yaw = to_positive(yaw)
+#	yaw = to_positive(yaw)
 
 	#dt = odometry_msg.header.seq
 

@@ -14,12 +14,12 @@ from geometry_msgs.msg import PoseArray
 # TUNABLE PARAMETERS #
 ######################
 
-k = 0.1  # look forward gain
-Lfc = 1.0  # look-ahead distance
-Kp = 1.0  # speed propotional gain
+k = 1.3  # look forward gain
+Lfc = 0.15 # look-ahead distance
+#Kp = 0.7  # speed propotional gain
 L = 0.32  # [m] wheel base of vehicle change according to our car --> length of the car
 
-target_speed = 30  # [PWM %]
+target_speed = 25  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -105,11 +105,13 @@ def calc_target_index(state, cx, cy):
 # target_ind = calc_target_index(state, cx, cy)
 # di, target_ind = pure_pursuit_control(state, cx, cy, target_ind)
 
-pub = rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 
-rate = rospy.Rate(30) # 30 [Hz]
+#pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 
+rospy.init_node('pure_pursuit_controller')
+pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 
+#print("test1")
 
 ########
 # MAIN #
@@ -121,28 +123,29 @@ pind = 0
 
 def callback_mocap(odometry_msg): # ask Frank
     global pind
-
+    #print("mocap")
     if not len(traj_x) == 0:
         #while pind<len(traj_x):
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
-        yaw = odometry_msg.pose.orientation.z
-        v = odometry_msg.twist.twist.linear.x
+	#print(x_pos)
+        yaw = odometry_msg.pose.pose.orientation.z
+	v = odometry_msg.twist.twist.linear.x
+	#v=30
 
         state_m = State(x_pos, y_pos, yaw, v)
         delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, pind)
         pind = ind
 
-        target_angle = max(-100, min(delta / (math.pi / 4) * 100, 100))
-
+        target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
+	#print(target_angle)
         control_request = lli_ctrl_request()
         control_request.velocity = target_speed 
         control_request.steering = target_angle
         pub.publish(control_request)
 
-
 def callback_traj(traj_msg):
-
+	#print("traj")
     #traj_x = traj_msg.poses.position.x # Ask Frank
     #traj_y = traj_msg.poses.position.y
 
@@ -155,16 +158,19 @@ def callback_traj(traj_msg):
 	for traj_pt in traj:
 		traj_x.append(traj_pt.position.x)	
 		traj_y.append(traj_pt.position.y)	
-
+		#print(traj_pt.position.x)
 
 def main():
-
-    rospy.init_node('pure_pursuit_controller')
+   # rospy.init_node('pure_pursuit_controller')
+   # pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
+   #rate = rospy.Rate(50) # 30 [Hz]
+    #print("test_main")
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
     traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
+    #rate = rospy.Rate(50) # 30 [Hz]
 
     rospy.spin()
 
-
 if __name__ == '__main__':
     main()
+
