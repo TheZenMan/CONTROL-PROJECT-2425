@@ -19,7 +19,7 @@ Lfc = 1.0  # look-ahead distance
 Kp = 1.0  # speed propotional gain
 L = 0.32  # [m] wheel base of vehicle change according to our car --> length of the car
 
-target_speed = 10.0 / 3.6  # [m/s]
+target_speed = 30  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -30,7 +30,6 @@ x = []
 y = []
 yaw = []
 v = []
-
 
 #####################
 # CLASS DEFINITIONS #
@@ -118,38 +117,44 @@ rate = rospy.Rate(30) # 30 [Hz]
 
 traj_x = []
 traj_y = []
+pind = 0
 
 def callback_mocap(odometry_msg): # ask Frank
-    pind = 0
-    if traj_x and traj_y:
+    global pind
 
-        while pind<len(traj_x):
-            x_pos = odometry_msg.pose.pose.position.x
-            y_pos = odometry_msg.pose.pose.position.y
-            yaw = odometry_msg.pose.orientation.z
-            v = odometry_msg.twist.twist.velocity.x
+    if not len(traj_x) == 0:
+        #while pind<len(traj_x):
+        x_pos = odometry_msg.pose.pose.position.x
+        y_pos = odometry_msg.pose.pose.position.y
+        yaw = odometry_msg.pose.orientation.z
+        v = odometry_msg.twist.twist.linear.x
 
-            state_m = State(x_pos, y_pos, yaw, v)
-            delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, pind)
-            pind = ind
+        state_m = State(x_pos, y_pos, yaw, v)
+        delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, pind)
+        pind = ind
 
-            control_request = lli_ctrl_request()
-            control_request.velocity = v
-            control_request.steering = delta
-            pub.publish(control_request)
+        target_angle = max(-100, min(delta / (math.pi / 4) * 100, 100))
 
-
-
+        control_request = lli_ctrl_request()
+        control_request.velocity = target_speed 
+        control_request.steering = target_angle
+        pub.publish(control_request)
 
 
 def callback_traj(traj_msg):
-    traj_x = traj_msg.pose.position.x # Ask Frank
-    traj_y = traj_msg.pose.position.y
 
+    #traj_x = traj_msg.poses.position.x # Ask Frank
+    #traj_y = traj_msg.poses.position.y
 
+	global traj_x
+	global traj_y
 
+	traj = traj_msg.poses
+	traj_x, traj_y = [], []
 
-
+	for traj_pt in traj:
+		traj_x.append(traj_pt.position.x)	
+		traj_y.append(traj_pt.position.y)	
 
 
 def main():

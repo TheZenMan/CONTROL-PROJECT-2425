@@ -40,9 +40,12 @@ def odometry_callback(odometry_msg):
 
 
 	euler = tf.transformations.euler_from_quaternion(quaternion)
-	roll  = degrees(euler[0])
-	pitch = degrees(euler[1])
-	yaw   =  degrees(euler[2])
+	#roll  = degrees(euler[0])
+	#pitch = degrees(euler[1])
+	#yaw   =  degrees(euler[2])
+	roll  = euler[0]
+	pitch = euler[1]
+	yaw   =  euler[2]
 
 	#roll = to_positive(roll)
 	#pitch = to_positive(pitch)
