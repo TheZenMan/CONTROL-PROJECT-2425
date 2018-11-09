@@ -7,7 +7,7 @@ import numpy as np
 from geometry_msgs.msg import Twist
 from  low_level_interface.msg import lli_ctrl_request
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseArray
 
 
 ######################
@@ -90,7 +90,7 @@ def calc_target_index(state, cx, cy):
     # search look ahead target point index
     while Lf > Ln and (ind + 1) < len(cx):
         dx = cx[ind + 1] - cx[ind]
-        dy = cx[ind + 1] - cx[ind]
+        dy = cy[ind + 1] - cy[ind]
         Ln += math.sqrt(dx ** 2 + dy ** 2)
         ind += 1
 
@@ -119,15 +119,15 @@ rate = rospy.Rate(30) # 30 [Hz]
 traj_x = []
 traj_y = []
 
-def callback_mocap(odometry_msg):
+def callback_mocap(odometry_msg): # ask Frank
     pind = 0
-    if traj_x:
+    if traj_x and traj_y:
 
-        v=1
         while pind<len(traj_x):
             x_pos = odometry_msg.pose.pose.position.x
             y_pos = odometry_msg.pose.pose.position.y
             yaw = odometry_msg.pose.orientation.z
+            v = odometry_msg.twist.twist.velocity.x
 
             state_m = State(x_pos, y_pos, yaw, v)
             delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, pind)
@@ -143,8 +143,10 @@ def callback_mocap(odometry_msg):
 
 
 def callback_traj(traj_msg):
-    traj_x = traj_msg.poses.position.x
-    traj_y = traj_msg.poses.position.y
+    traj_x = traj_msg.pose.position.x # Ask Frank
+    traj_y = traj_msg.pose.position.y
+
+
 
 
 
@@ -154,11 +156,10 @@ def main():
 
     rospy.init_node('pure_pursuit_controller')
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
-    traj_sub = rospy.Subscriber('/nav_traj + /SVEA5', PoseArray, callback_traj)
+    traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
 
     rospy.spin()
 
 
 if __name__ == '__main__':
     main()
-
