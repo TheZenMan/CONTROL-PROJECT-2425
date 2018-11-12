@@ -151,8 +151,10 @@ def callback_mocap(odometry_msg): # ask Frank
                 control_request = lli_ctrl_request()
                 control_request.velocity = target_speed #put this in a controller node
                 pub.publish(control_request) #publish to control request, but only if near an obstacle
+                print("obstacle in way")
 
             else:
+                print("no obstacle")
                 control_request = lli_ctrl_request()
                 control_request.velocity = target_speed
                 control_request.steering = target_angle
