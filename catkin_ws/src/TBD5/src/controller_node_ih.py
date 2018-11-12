@@ -161,10 +161,11 @@ def callback_mocap(odometry_msg): # ask Frank
 
 def callback_lidar(scan):
     if not len(traj_x) == 0: #both subscribers dont start same time
-        for i in range(len(scan.ranges)):
-            global distance_list
-            distance_list = []
-            distance_list.append(scan.ranges[i])
+        distance_list =scan.ranges
+        #for range in scan.ranges:
+         #   global distance_list
+          #  distance_list = []
+           # distance_list.append(range)
 
             #We just take in distance from Lidar for now, below is stuff with angles but won't be used for now
 
@@ -195,7 +196,7 @@ def main():
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
 
 
-    lidar_sub = rospy.Subscriber('/lidar_scan' + '/SVEA5', LaserScan, callback_lidar)  # correct topic for lidar?
+    lidar_sub = rospy.Subscriber('lidar_scan', LaserScan, callback_lidar)  # correct topic for lidar?
 
     traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
 
