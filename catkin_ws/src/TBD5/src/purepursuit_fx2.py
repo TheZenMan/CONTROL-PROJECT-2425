@@ -7,7 +7,7 @@ import numpy as np
 from geometry_msgs.msg import Twist
 from  low_level_interface.msg import lli_ctrl_request
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import PointStamped, PoseArray
 
 
 ######################
@@ -109,7 +109,8 @@ def calc_target_index(state, cx, cy):
 #pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 
 rospy.init_node('pure_pursuit_controller')
-pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
+ctrl_pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
+target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_size=1)
 
 #print("test1")
 
@@ -137,12 +138,19 @@ def callback_mocap(odometry_msg): # ask Frank
         delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, pind)
         pind = ind
 
+        target_pose = PointStamped()
+        target_pose.header.stamp = rospy.Time.now()
+        target_pose.header.frame_id = 'qualisys'
+        target_pose.point.x = traj_x[pind]
+        target_pose.point.y = traj_y[pind]
+        target_pub.publish(target_pose)
+
         target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
 	#print(target_angle)
         control_request = lli_ctrl_request()
-        control_request.velocity = target_speed 
+        control_request.velocity = target_speed
         control_request.steering = target_angle
-        pub.publish(control_request)
+        ctrl_pub.publish(control_request)
 
 def callback_traj(traj_msg):
 	#print("traj")
@@ -156,8 +164,8 @@ def callback_traj(traj_msg):
 	traj_x, traj_y = [], []
 
 	for traj_pt in traj:
-		traj_x.append(traj_pt.position.x)	
-		traj_y.append(traj_pt.position.y)	
+		traj_x.append(traj_pt.position.x)
+		traj_y.append(traj_pt.position.y)
 		#print(traj_pt.position.x)
 
 def main():

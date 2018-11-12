@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 
 import rospy
 import math
@@ -127,8 +127,9 @@ pind = 0
 def callback_mocap(odometry_msg): # ask Frank
     global pind
     #print("mocap")
-    if not len(traj_x) and len(distance_list) == 0:
+    if not len(traj_x) == 0 and not len(distance_list) == 0:
         #while pind<len(traj_x):
+        print("mocap")
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
 	#print(x_pos)
@@ -145,11 +146,10 @@ def callback_mocap(odometry_msg): # ask Frank
         #controll with Lidar
         for i in range(len(distance_list)):
             distance = distance_list[i]
-
+            print(distance)
             if distance<1:
-                target_speed = 0 # speed 0 if too close to obstacle
                 control_request = lli_ctrl_request()
-                control_request.velocity = target_speed #put this in a controller node
+                control_request.velocity = 0 #put this in a controller node
                 pub.publish(control_request) #publish to control request, but only if near an obstacle
                 print("obstacle in way")
 
@@ -162,8 +162,10 @@ def callback_mocap(odometry_msg): # ask Frank
 
 
 def callback_lidar(scan):
+    global distance_list
     if not len(traj_x) == 0: #both subscribers dont start same time
         distance_list =scan.ranges
+        print('lidar callback')
         #for range in scan.ranges:
          #   global distance_list
           #  distance_list = []
@@ -175,7 +177,7 @@ def callback_lidar(scan):
 
 
 def callback_traj(traj_msg):
-	#print("traj")
+	print("traj")
     #traj_x = traj_msg.poses.position.x # Ask Frank
     #traj_y = traj_msg.poses.position.y
 
@@ -195,12 +197,13 @@ def main():
    # pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
    #rate = rospy.Rate(50) # 30 [Hz]
     #print("test_main")
-    mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
-
+    #mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
+    traj_sub = rospy.Subscriber('/nav_traj'+'/SVEA5', PoseArray, callback_traj)
 
     lidar_sub = rospy.Subscriber('lidar_scan', LaserScan, callback_lidar)  # correct topic for lidar?
 
-    traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
+    mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
+   #traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
 
     #rate = rospy.Rate(50) # 30 [Hz]
 

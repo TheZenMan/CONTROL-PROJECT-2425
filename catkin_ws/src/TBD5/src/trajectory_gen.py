@@ -43,6 +43,8 @@ class ShapeHandler:
             raise ValueError("Trajectory not built correctly")
 
         traj_pose_array = PoseArray()
+        traj_pose_array.header.stamp = rospy.Time.now()
+        traj_pose_array.header.frame_id = 'qualisys'
         for i in range(len(traj_x)):
             pose = Pose()
             pose.position.x = traj_x[i]
