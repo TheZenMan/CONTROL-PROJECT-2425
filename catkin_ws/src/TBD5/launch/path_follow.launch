@@ -11,8 +11,7 @@
 	</include>
 
 	<node pkg="TBD5" type="qualTBD5.py" name="qualTBD5" output="screen"></node>
-        <node pkg="TBD5" type="trajectory_gen.py" name="trajectory" output="screen"></node>
-
+    <node pkg="TBD5" type="trajectory_gen.py" name="trajectory" output="screen"></node>
 	<node pkg="TBD5" type="purepursuit_fx2.py" name="pure_pursuit_controller" output="screen"></node>
 
 </launch>
