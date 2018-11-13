@@ -11,7 +11,7 @@ rate = rospy.Rate(50)
 
 
 scans = LaserScan()
-scans.ranges = [30, 22, 11, 33, 44, 44, 55, 66]
+scans.ranges = [2,2,4,5,6,7,66]
 
 while not rospy.is_shutdown():
     pub.publish(scans)
