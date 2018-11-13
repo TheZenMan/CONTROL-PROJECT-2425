@@ -126,10 +126,10 @@ pind = 0
 
 def callback_mocap(odometry_msg): # ask Frank
     global pind
-    #print("mocap")
+    print("mocap")
     if not len(traj_x) == 0 and not len(distance_list) == 0:
         #while pind<len(traj_x):
-        print("mocap")
+       # print("mocap")
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
 	#print(x_pos)
@@ -165,7 +165,7 @@ def callback_lidar(scan):
     global distance_list
     if not len(traj_x) == 0: #both subscribers dont start same time
         distance_list =scan.ranges
-        print('lidar callback')
+        #print('lidar callback')
         #for range in scan.ranges:
          #   global distance_list
           #  distance_list = []
@@ -177,7 +177,7 @@ def callback_lidar(scan):
 
 
 def callback_traj(traj_msg):
-	print("traj")
+	#print("traj")
     #traj_x = traj_msg.poses.position.x # Ask Frank
     #traj_y = traj_msg.poses.position.y
 
