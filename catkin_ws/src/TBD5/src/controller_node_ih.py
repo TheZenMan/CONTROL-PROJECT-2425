@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 
 import rospy
 import math
@@ -7,7 +7,7 @@ import numpy as np
 from geometry_msgs.msg import Twist
 from low_level_interface.msg import lli_ctrl_request
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import PointStamped, PoseArray
 from sensor_msgs.msg import LaserScan
 
 ######################
@@ -144,10 +144,10 @@ def callback_mocap(odometry_msg): # ask Frank
             for i in range(len(distance_list)):
                 distance = distance_list[i]
                 print(distance)
-                if distance < 1:
+                if distance < 0.1:
                     control_request = lli_ctrl_request()
                     control_request.velocity = 0  # put this in a controller node
-                    pub.publish(control_request)  # publish to control request, but only if near an obstacle
+                    ctrl_pub.publish(control_request)  # publish to control request, but only if near an obstacle
                     print("obstacle in way")
                 else:
                     delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)

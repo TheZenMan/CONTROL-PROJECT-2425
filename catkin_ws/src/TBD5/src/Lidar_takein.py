@@ -61,8 +61,8 @@ def callback_mocap(odometry_msg):
 def main():
 
 
-    lidar_sub = rospy.Subscriber('/lidar_scan' + '/SVEA5', LaserScan, callback_lidar) #correct topic for lidar?
-    mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
+    lidar_sub = rospy.Subscriber('/scan', LaserScan, callback_lidar)
+    mocap_sub = rospy.Subscriber('/odometry_body_frame', Odometry, callback_mocap)
 
     rospy.spin()
 
