@@ -109,7 +109,7 @@ def calc_target_index(state, cx, cy):
 
 #pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 
-rospy.init_node('pure_pursuit_controller')
+rospy.init_node('lidarnode_controller')
 ctrl_pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_size=1)
 
