@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 import rospy
 import math
@@ -10,18 +10,17 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseArray
 from sensor_msgs.msg import LaserScan
 
-
-
 ######################
 # TUNABLE PARAMETERS #
 ######################
 
-k = 1.3  # look forward gain
-Lfc = 0.15 # look-ahead distance
+k = 0.4  # look forward gain
+Lfc = 0.4# look-ahead distance
 #Kp = 0.7  # speed propotional gain
-L = 0.32  # [m] wheel base of vehicle change according to our car --> length of the car
+L = 0.32  # [m] wheel base of
+#vehicle change according to our car --> length of the car
 
-target_speed = 25  # [PWM %]
+target_speed = 35  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -110,8 +109,9 @@ def calc_target_index(state, cx, cy):
 
 #pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 
-rospy.init_node('lidarnode_controller')
-pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
+rospy.init_node('pure_pursuit_controller')
+ctrl_pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
+target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_size=1)
 
 #print("test1")
 
@@ -121,45 +121,61 @@ pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 
 traj_x = []
 traj_y = []
-distance_list=[]
-pind = 0
+# pind = 0
 
 def callback_mocap(odometry_msg): # ask Frank
-    global pind
-    print("mocap")
+    # global pind
+    #print("mocap")
     if not len(traj_x) == 0 and not len(distance_list) == 0:
         #while pind<len(traj_x):
-       # print("mocap")
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
 	#print(x_pos)
         yaw = odometry_msg.pose.pose.orientation.z
-        v = odometry_msg.twist.twist.linear.x
+	v = odometry_msg.twist.twist.linear.x
 	#v=30
 
         state_m = State(x_pos, y_pos, yaw, v)
-        delta, ind = pure_pursuit_control(state_m, traj_x, traj_y, pind)
-        pind = ind
 
-        target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
+        ind = calc_target_index(state_m, traj_x, traj_y)
 
-        #controll with Lidar
-        for i in range(len(distance_list)):
-            distance = distance_list[i]
-            print(distance)
-            if distance<1:
-                control_request = lli_ctrl_request()
-                control_request.velocity = 0 #put this in a controller node
-                pub.publish(control_request) #publish to control request, but only if near an obstacle
-                print("obstacle in way")
+        if ind < len(traj_x)-1:
+            print("### RUNNING TRAJECTORY")
+            for i in range(len(distance_list)):
+                distance = distance_list[i]
+                print(distance)
+                if distance < 1:
+                    control_request = lli_ctrl_request()
+                    control_request.velocity = 0  # put this in a controller node
+                    pub.publish(control_request)  # publish to control request, but only if near an obstacle
+                    print("obstacle in way")
+                else:
+                    delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
+                    # pind = ind
 
-            else:
-                print("no obstacle")
-                control_request = lli_ctrl_request()
-                control_request.velocity = target_speed
-                control_request.steering = target_angle
-                pub.publish(control_request)
+                    target_pose = PointStamped()
+                    target_pose.header.stamp = rospy.Time.now()
+                    target_pose.header.frame_id = 'qualisys'
+                    # target_pose.point.x = traj_x[pind]
+                    # target_pose.point.y = traj_y[pind]
+                    target_pose.point.x = traj_x[ind]
+                    target_pose.point.y = traj_y[ind]
+                    target_pub.publish(target_pose)
 
+                    target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
+                    #print(target_angle)
+                    control_request = lli_ctrl_request()
+                    control_request.velocity = target_speed
+                    control_request.steering = target_angle
+
+        else:
+            print("### DONE WITH TRAJECTORY")
+
+            control_request = lli_ctrl_request()
+            control_request.velocity = 0
+            control_request.steering = 0
+
+        ctrl_pub.publish(control_request)
 
 def callback_lidar(scan):
     global distance_list
@@ -171,13 +187,8 @@ def callback_lidar(scan):
           #  distance_list = []
            # distance_list.append(range)
 
-            #We just take in distance from Lidar for now, below is stuff with angles but won't be used for now
-
-
-
-
 def callback_traj(traj_msg):
-	print("traj")
+	#print("traj")
     #traj_x = traj_msg.poses.position.x # Ask Frank
     #traj_y = traj_msg.poses.position.y
 
@@ -197,14 +208,11 @@ def main():
    # pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
    #rate = rospy.Rate(50) # 30 [Hz]
     #print("test_main")
-    #mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
-    traj_sub = rospy.Subscriber('/nav_traj'+'/SVEA5', PoseArray, callback_traj)
-
-    lidar_sub = rospy.Subscriber('lidar_scan', LaserScan, callback_lidar)  # correct topic for lidar?
-
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
-   #traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
+    traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
 
+
+    lidar_sub = rospy.Subscriber('/scan', LaserScan, callback_lidar)
     #rate = rospy.Rate(50) # 30 [Hz]
 
     rospy.spin()
