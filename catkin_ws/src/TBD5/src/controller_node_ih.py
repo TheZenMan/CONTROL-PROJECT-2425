@@ -165,7 +165,7 @@ def callback_lidar(scan):
     global distance_list
     if not len(traj_x) == 0: #both subscribers dont start same time
         distance_list =scan.ranges
-        #print('lidar callback')
+        print('lidar callback')
         #for range in scan.ranges:
          #   global distance_list
           #  distance_list = []
@@ -177,7 +177,7 @@ def callback_lidar(scan):
 
 
 def callback_traj(traj_msg):
-	#print("traj")
+	print("traj")
     #traj_x = traj_msg.poses.position.x # Ask Frank
     #traj_y = traj_msg.poses.position.y
 

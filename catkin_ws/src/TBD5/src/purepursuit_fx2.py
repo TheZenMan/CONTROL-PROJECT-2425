@@ -14,10 +14,11 @@ from geometry_msgs.msg import PointStamped, PoseArray
 # TUNABLE PARAMETERS #
 ######################
 
-k = 1.3  # look forward gain
-Lfc = 0.15 # look-ahead distance
+k = 0.2  # look forward gain
+Lfc = 0.1# look-ahead distance
 #Kp = 0.7  # speed propotional gain
-L = 0.32  # [m] wheel base of vehicle change according to our car --> length of the car
+L = 0.32  # [m] wheel base of
+#vehicle change according to our car --> length of the car
 
 target_speed = 25  # [PWM %]
 
