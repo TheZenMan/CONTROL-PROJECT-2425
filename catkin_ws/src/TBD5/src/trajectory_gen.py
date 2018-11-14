@@ -112,7 +112,6 @@ class ShapeHandler:
         waypts = np.arange(0, 2 * pi, angle_separation)
         cx = radius * np.cos(waypts)
         cy = radius * np.sin(waypts)
-
         return cx, cy
 
     def gen_ellipse(self, center, radius0, radius1):
@@ -129,7 +128,7 @@ class ShapeHandler:
                                    Point( 1,  1, 0),
                                    Point(-1,  1, 0))
         elif self.shape == self.CIRCLE:
-            cx, cy = self.gen_circle(Point(), 1)
+            cx, cy = self.gen_circle(Point(), 1.5)
         elif self.shape == self.ELLIPSE:
             cx, cy = self.gen_ellipse()
         else:

@@ -14,13 +14,13 @@ from geometry_msgs.msg import PointStamped, PoseArray
 # TUNABLE PARAMETERS #
 ######################
 
-k = 0.2  # look forward gain
-Lfc = 0.1# look-ahead distance
+k = 0.4  # look forward gain
+Lfc = 0.4# look-ahead distance
 #Kp = 0.7  # speed propotional gain
 L = 0.32  # [m] wheel base of
 #vehicle change according to our car --> length of the car
 
-target_speed = 25  # [PWM %]
+target_speed = 35  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -121,10 +121,10 @@ target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_siz
 
 traj_x = []
 traj_y = []
-pind = 0
+# pind = 0
 
 def callback_mocap(odometry_msg): # ask Frank
-    global pind
+    # global pind
     #print("mocap")
     if not len(traj_x) == 0:
         #while pind<len(traj_x):
@@ -136,21 +136,37 @@ def callback_mocap(odometry_msg): # ask Frank
 	#v=30
 
         state_m = State(x_pos, y_pos, yaw, v)
-        delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, pind)
-        pind = ind
 
-        target_pose = PointStamped()
-        target_pose.header.stamp = rospy.Time.now()
-        target_pose.header.frame_id = 'qualisys'
-        target_pose.point.x = traj_x[pind]
-        target_pose.point.y = traj_y[pind]
-        target_pub.publish(target_pose)
+        ind = calc_target_index(state_m, traj_x, traj_y)
 
-        target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
-	#print(target_angle)
-        control_request = lli_ctrl_request()
-        control_request.velocity = target_speed
-        control_request.steering = target_angle
+        if ind < len(traj_x)-1:
+            print("### RUNNING TRAJECTORY")
+
+            delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
+            # pind = ind
+
+            target_pose = PointStamped()
+            target_pose.header.stamp = rospy.Time.now()
+            target_pose.header.frame_id = 'qualisys'
+            # target_pose.point.x = traj_x[pind]
+            # target_pose.point.y = traj_y[pind]
+            target_pose.point.x = traj_x[ind]
+            target_pose.point.y = traj_y[ind]
+            target_pub.publish(target_pose)
+
+            target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
+            #print(target_angle)
+            control_request = lli_ctrl_request()
+            control_request.velocity = target_speed
+            control_request.steering = target_angle
+
+        else:
+            print("### DONE WITH TRAJECTORY")
+
+            control_request = lli_ctrl_request()
+            control_request.velocity = 0
+            control_request.steering = 0
+
         ctrl_pub.publish(control_request)
 
 def callback_traj(traj_msg):
