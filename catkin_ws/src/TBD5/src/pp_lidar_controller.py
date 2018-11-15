@@ -122,6 +122,7 @@ target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_siz
 traj_x = []
 traj_y = []
 distance_list=[]
+true_distance_list=[]
 # pind = 0
 
 def callback_mocap(odometry_msg): # ask Frank
@@ -143,9 +144,11 @@ def callback_mocap(odometry_msg): # ask Frank
 
         if ind < len(traj_x)-1:
             print("### RUNNING TRAJECTORY")
-            min_dist= min(distance_list)
-            #print(distance)
-            print(len(distance_list))
+	    dist_len=len(distance_list)
+	    for i in range (len(distance_list)):
+		if i>dist_len/4 and i<3*dist_len/4
+		true_distance_list.append(disance_list)
+            min_dist= min(true_distance_list)
             if min_dist < 0.60:
                 control_request = lli_ctrl_request()
                 control_request.velocity = 0  # put this in a controller node
