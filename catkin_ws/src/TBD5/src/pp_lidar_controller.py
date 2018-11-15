@@ -20,7 +20,7 @@ Lfc = 0.4# look-ahead distance
 L = 0.32  # [m] wheel base of
 #vehicle change according to our car --> length of the car
 
-target_speed = 35  # [PWM %]
+target_speed = 30  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -122,7 +122,6 @@ target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_siz
 traj_x = []
 traj_y = []
 distance_list=[]
-true_distance_list=[]
 # pind = 0
 
 def callback_mocap(odometry_msg): # ask Frank
@@ -145,9 +144,10 @@ def callback_mocap(odometry_msg): # ask Frank
         if ind < len(traj_x)-1:
             print("### RUNNING TRAJECTORY")
 	    dist_len=len(distance_list)
+            true_distance_list=[]
 	    for i in range (len(distance_list)):
-		if i>dist_len/4 and i<3*dist_len/4
-		true_distance_list.append(disance_list)
+                if i>dist_len/5 and i<4*dist_len/5:
+                    true_distance_list.append(distance_list[i])
             min_dist= min(true_distance_list)
             if min_dist < 0.60:
                 control_request = lli_ctrl_request()
@@ -159,7 +159,7 @@ def callback_mocap(odometry_msg): # ask Frank
                 # pind = ind
                 target_pose = PointStamped()
                 target_pose.header.stamp = rospy.Time.now()
-                target_pose.header.frame_id = 'qualisys'
+                target_pose.header.frame_id = '/qualisys'
                 # target_pose.point.x = traj_x[pind]
                 # target_pose.point.y = traj_y[pind]
                 target_pose.point.x = traj_x[ind]
