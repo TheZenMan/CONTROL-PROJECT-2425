@@ -20,7 +20,7 @@ Lfc = 0.4# look-ahead distance
 L = 0.32  # [m] wheel base of
 #vehicle change according to our car --> length of the car
 
-target_speed = 30  # [PWM %]
+target_speed = 40  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -146,7 +146,7 @@ def callback_mocap(odometry_msg): # ask Frank
 	    dist_len=len(distance_list)
             true_distance_list=[]
 	    for i in range (len(distance_list)):
-                if i>dist_len/5 and i<4*dist_len/5:
+                if i>dist_len/6 and i<5*dist_len/6:
                     true_distance_list.append(distance_list[i])
             min_dist= min(true_distance_list)
             if min_dist < 0.60:
