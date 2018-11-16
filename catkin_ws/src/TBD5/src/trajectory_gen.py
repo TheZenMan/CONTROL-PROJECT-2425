@@ -111,10 +111,7 @@ class ShapeHandler:
             waypts = np.arange(0, 50* pi, angle_separation)
             cx = radius * np.cos(waypts)
             cy = radius * np.sin(waypts)
-           return cx, cy
-
-	
-       
+            return cx, cy
 
     def gen_ellipse(self, center, radius0, radius1):
         print("not implemented yet")
