@@ -107,12 +107,13 @@ class ShapeHandler:
         return cx, cy
 
     def gen_circle(self, center, radius):
-
-        angle_separation = self.WAYPOINT_SEPARATION / radius
-        waypts = np.arange(0, 2 * pi, angle_separation)
-        cx = radius * np.cos(waypts)
-        cy = radius * np.sin(waypts)
-        return cx, cy
+	
+	for i in range(1,10):
+        	angle_separation= self.WAYPOINT_SEPARATION / radius
+        	waypts= np.arange(0, 2 * pi, angle_separation)
+        	cx= radius * np.cos(waypts)
+        	cy = radius * np.sin(waypts)
+        	return cx, cy
 
     def gen_ellipse(self, center, radius0, radius1):
         print("not implemented yet")
