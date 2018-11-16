@@ -95,9 +95,10 @@ class ShapeHandler:
         cx1, cy1 = self.gen_line_segment(corner1, corner2)
         cx2, cy2 = self.gen_line_segment(corner2, corner3)
         cx3, cy3 = self.gen_line_segment(corner3, corner0)
+        cx4, cy4 = self.gen_line_segment(corner0, corner1)
 
-        x = np.append(cx0, np.append(cx1, np.append(cx2, cx3)))
-        y = np.append(cy0, np.append(cy1, np.append(cy2, cy3)))
+        x = np.append(cx0, np.append(cx1, np.append(cx2, np.append(cx3, cx4))))
+        y = np.append(cy0, np.append(cy1, np.append(cy2, np.append(cy3, cy4))))
 
         cx, cy = [], []
         for i in range(laps):
