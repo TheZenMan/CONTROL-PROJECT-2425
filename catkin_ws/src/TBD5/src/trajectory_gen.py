@@ -22,6 +22,7 @@ class ShapeHandler:
     SQUARE = 1
     CIRCLE = 2
     ELLIPSE = 3
+    POINT = 4
 
     def __init__(self, shape):
 
@@ -36,6 +37,7 @@ class ShapeHandler:
         elif shape_name == "SQUARE": return self.SQUARE
         elif shape_name == "CIRCLE": return self.CIRCLE
         elif shape_name == "ELLIPSE": return self.ELLIPSE
+        elif shape_name == "POINT": return self.POINT
 
     def load_traj_msg(self, traj_x, traj_y):
 
@@ -118,6 +120,13 @@ class ShapeHandler:
         print("not implemented yet")
         pass
 
+    def gen_point(self, goal_point, laps=1000):
+        cx, cy = [],[]
+        for i in range(laps):
+            cx = np.append(cx,goal_point.x)
+            cy = np.append(cy,goal_point.y)
+        return cx, cy
+
     def gen_traj(self):
 
         if self.shape == self.LINE_SEGMENT:
@@ -131,6 +140,9 @@ class ShapeHandler:
             cx, cy = self.gen_circle(Point(), 1)
         elif self.shape == self.ELLIPSE:
             cx, cy = self.gen_ellipse()
+        elif self.shape == self.POINT:
+            cx, cy = self.gen_point(Point(1,1,0))
+
         else:
             print("######## WARNING: GIVEN SHAPE NOT HANDLED ########")
             cx, cy = [], []
@@ -147,7 +159,7 @@ def main():
     # initialize ros
     rospy.init_node('trajectory_planner')
 
-    planner_mode = rospy.get_param('/trajectory_planner/planner_mode', "CIRCLE")
+    planner_mode = rospy.get_param('/trajectory_planner/planner_mode', "POINT")
 
 
     shape_handler = ShapeHandler(planner_mode)

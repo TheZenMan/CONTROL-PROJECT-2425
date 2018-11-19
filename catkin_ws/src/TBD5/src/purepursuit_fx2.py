@@ -50,8 +50,8 @@ class State:
 ##############
 
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
-
-    ind = calc_target_index(state, cx, cy)
+    ind = 1
+   #ind = calc_target_index(state, cx, cy)
 
     if pind >= ind:
         ind = pind
@@ -75,8 +75,7 @@ def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we w
 
     return delta, ind
 
-
-def calc_target_index(state, cx, cy):
+#def calc_target_index(state, cx, cy):  #uncomment for path following
 
     # search nearest point index
     dx = [state.x - icx for icx in cx]
@@ -93,9 +92,28 @@ def calc_target_index(state, cx, cy):
         dy = cy[ind + 1] - cy[ind]
         Ln += math.sqrt(dx ** 2 + dy ** 2)
         ind += 1
-
+        print ind
     return ind
 
+    #define index for path planning
+#def calc_target_index(state, cx, cy):
+
+    dx = [state.x - icx for icx in cx]
+    dy = [state.y - icy for icy in cy]
+    d = [abs(math.sqrt(idx ** 2 + idy ** 2)) for (idx, idy) in zip(dx, dy)]
+    ind = 1
+    Ln = 0.0
+
+    Lf = k * state.v + Lfc
+
+    while Lf > Ln and (ind + 1) < len(cx):
+        dx = cx[ind + 1] - cx[ind]
+        dy = cy[ind + 1] - cy[ind]
+        Ln += math.sqrt(dx ** 2 + dy ** 2)
+        ind +=1
+        print ind
+
+    return ind
 
 #######
 # ROS #
@@ -137,7 +155,8 @@ def callback_mocap(odometry_msg): # ask Frank
 
         state_m = State(x_pos, y_pos, yaw, v)
 
-        ind = calc_target_index(state_m, traj_x, traj_y)
+        #ind = calc_target_index(state_m, traj_x, traj_y)
+        ind = 1
 
         if ind < len(traj_x)-1:
             print("### RUNNING TRAJECTORY")
