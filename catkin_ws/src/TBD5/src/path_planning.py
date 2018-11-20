@@ -52,11 +52,9 @@ class State:
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
   
    
-        ind = pind
-        tx = cx[ind]
-        ty = cy[ind]
-   
-
+    ind = pind
+    tx = cx[ind]
+    ty = cy[ind]
     alpha = math.atan2(ty - state.y, tx - state.x) - state.yaw
 
     if state.v < 0:  # back
@@ -79,12 +77,13 @@ def calc_target_index(state, cx, cy):
 
     Lf = k * state.v + Lfc
 
-    while Lf > Ln:
+    if Lf > Ln:
         dx = cx[ind + 1] - cx[ind]
         dy = cy[ind + 1] - cy[ind]
         Ln += math.sqrt(dx ** 2 + dy ** 2)
+	ind = 1
         
-    if Lf <= Ln:
+    else:
 	ind = 1000
     return ind
 
@@ -121,7 +120,7 @@ def callback_mocap(odometry_msg): # ask Frank
         state_m = State(x_pos, y_pos, yaw, v)
 
         ind = calc_target_index(state_m, traj_x, traj_y)
-       
+        
 
         if ind < len(traj_x)-1:
             print("### RUNNING TRAJECTORY")
@@ -137,3 +136,49 @@ def callback_mocap(odometry_msg): # ask Frank
             target_pose.point.x = traj_x[ind]
             target_pose.point.y = traj_y[ind]
             target_pub.publish(target_pose)
+
+            target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
+            #print(target_angle)
+            control_request = lli_ctrl_request()
+            control_request.velocity = target_speed
+            control_request.steering = target_angle
+
+        else:
+            print("### DONE WITH TRAJECTORY")
+
+            control_request = lli_ctrl_request()
+            control_request.velocity = 0
+            control_request.steering = 0
+
+        ctrl_pub.publish(control_request)
+
+def callback_traj(traj_msg):
+	#print("traj")
+    #traj_x = traj_msg.poses.position.x # Ask Frank
+    #traj_y = traj_msg.poses.position.y
+
+	global traj_x
+	global traj_y
+
+	traj = traj_msg.poses
+	traj_x, traj_y = [], []
+
+	for traj_pt in traj:
+		traj_x.append(traj_pt.position.x)
+		traj_y.append(traj_pt.position.y)
+		#print(traj_pt.position.x)
+
+def main():
+   # rospy.init_node('pure_pursuit_controller')
+   # pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
+   #rate = rospy.Rate(50) # 30 [Hz]
+    #print("test_main")
+    mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
+    traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
+    #rate = rospy.Rate(50) # 30 [Hz]
+
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()
+
