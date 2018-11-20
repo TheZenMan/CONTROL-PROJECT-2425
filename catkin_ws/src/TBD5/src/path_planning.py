@@ -20,7 +20,7 @@ Lfc = 0.4# look-ahead distance
 L = 0.32  # [m] wheel base of
 #vehicle change according to our car --> length of the car
 
-target_speed = 35  # [PWM %]
+target_speed = 25  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -50,8 +50,8 @@ class State:
 ##############
 
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
-  
-   
+
+
     ind = pind
     tx = cx[ind]
     ty = cy[ind]
@@ -68,30 +68,23 @@ def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we w
 
 #define index for path planning
 def calc_target_index(state, cx, cy):
-
-    dx = [state.x - icx for icx in cx]
-    dy = [state.y - icy for icy in cy]
-    d = [abs(math.sqrt(idx ** 2 + idy ** 2)) for (idx, idy) in zip(dx, dy)]
-    ind = 1
-    Ln = 0.0
-
-    Lf = k * state.v + Lfc
-
-    if Lf > Ln:
-        dx = cx[ind + 1] - cx[ind]
-        dy = cy[ind + 1] - cy[ind]
-        Ln += math.sqrt(dx ** 2 + dy ** 2)
+    ind=1
+    d=0.05
+    dx = state.x - cx[ind]
+    dy = state.y - cy[ind]
+    Ln = math.sqrt(dx ** 2 + dy ** 2)
+    if d < Ln:
 	ind = 1
-        
     else:
-	ind = 1000
+	ind = len(cx)+1
+    print ind
     return ind
 
 #######
 # ROS #
 #######
 
-rospy.init_node('pure_pursuit_controller')
+rospy.init_node('pure_pursuit_plan_controller')
 ctrl_pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_size=1)
 
@@ -120,7 +113,7 @@ def callback_mocap(odometry_msg): # ask Frank
         state_m = State(x_pos, y_pos, yaw, v)
 
         ind = calc_target_index(state_m, traj_x, traj_y)
-        
+
 
         if ind < len(traj_x)-1:
             print("### RUNNING TRAJECTORY")
