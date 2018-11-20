@@ -51,10 +51,18 @@ class State:
 
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
 
+    if pind >= ind:
+        ind=pind
 
-    ind = pind
-    tx = cx[ind]
-    ty = cy[ind]
+    if ind < len(cx):
+
+        tx = cx[ind]
+        ty = cy[ind]
+
+    else:
+        tx = cx[-1]
+        ty = cy[-1]
+        ind = len(cx) - 1
 
     alpha = math.atan2(ty - state.y, tx - state.x) - state.yaw
 
@@ -77,15 +85,13 @@ def calc_target_index(state, cx, cy):
     Ln = 0.0
 
     Lf = k * state.v + Lfc
+    print("calc")
 
-    if Lf > Ln:
+    while Lf > Ln and (ind+1)<len(cx):
         dx = cx[ind + 1] - cx[ind]
         dy = cy[ind + 1] - cy[ind]
         Ln += math.sqrt(dx ** 2 + dy ** 2)
-        ind=1
-
-    else:
-	ind = 1000
+        print ("while loop")
     return ind
 
 #######
