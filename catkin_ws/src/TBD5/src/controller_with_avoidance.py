@@ -134,104 +134,70 @@ def callback_mocap(odometry_msg):
                    # true_distance_list.append(distance_list[i]) ?
             #min_dist= min(true_distance_list)
             
-                if scan.ranges < 0.60: #if min_dist < 0.60:
                     control_request = lli_ctrl_request()
 		    control_request.velocity = 25
 
 		   # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car 				uses [rad] then mutliply by 100 because the car takes in percentage to steer
-		    if -(10*math.pi/180) < angles[i] <= (10*math.py/180):
+		    if -(90*math.pi/180) <= angles[i] <= -(70*math.pi/180):
+		        if ranges[i] < 0.2:  
+    			    control_request.steering = (15*math.py/180)*100 
+			elif 0.2 < ranges[i] < 0.4:
+		             control_request.steering = 0
+		        else:
+		 	    control_request.steering = target_angle
+
+		    if -(69*math.pi/180) <= angles[i] <= -(50*math.pi/180):
+		        if ranges[i] < 0.4:
+			    control_request.steering = (25*math.py/180)*100
+			else:
+			    control_request.steering = target_angle
+
+		    if -(49*math.pi/180) <= angles[i] <= (30*math.pi/180):
+		        if ranges[i] < 0.6:
+			    control_request.steering = (35*math.py/180)*100
+			else:
+	 		    control_request.steering = target _angle
+
+		    if -(29*math.pi/180) <= angles[i] <= -(10*math.pi/180):
+			if ranges[i] < 0.8:
+			    control_request.steering = (45*math.py/180)*100
+			else:
+		 	     control_request.steering = -(15*math.py/180)*100
+
+		    if -(9*math.pi/180) < angles[i] <= (10*math.py/180):
 			if ranges[i] < 1:
 			    control_request.steering = -(55*math.py/180)*100
-
-			if (11*math.pi/180) <= angles[i] <= (30*math.pi/180):
-			    if ranges[i] < 0.8:  
-    			        control_request.steering = -(45*math.py/180)*100 
-
-			    if (31*math.pi/180) <= angles[i] <= (50*math.pi/180):
-			        if ranges[i] < 0.6:
-			            control_request.steering = -(35*math.py/180)*100
-			    
-                                if (51*math.pi/180) <= angles[i] <= (70*math.pi/180):
-			            if ranges[i] < 0.4:
-			                control_request.steering = -(25*math.py/180)*100
-
-			            if (71*math.pi/180) <= angles[i] <= (90*math.pi/180):
-			                if ranges[i] < 0.2:
-			                    control_request.steering = -(15*math.py/180)*100
-		                        elif 0.2 < ranges[i] < 0.4:
-		   		            control_request.steering = 0
-				        else:
-		 		            control_request.steering = (15*math.py/180)*100
-				    else:
-				       	control_request.steering = (25*math.py/180)*100
-			        else:
-				    control_request.steering = (35*math.py/180)*100
-			    else:
-				control_request.steering = (45*math.py/180)*100
 			else:
-			    control_request.steering = (55*math.py/180)*100
+			    control_request.steering = target_angle
 
 		    if (11*math.pi/180) <= angles[i] <= (30*math.pi/180):
 		        if ranges[i] < 0.8:  
     			    control_request.steering = -(45*math.py/180)*100 
-
-			    if (31*math.pi/180) <= angles[i] <= (50*math.pi/180):
-			        if ranges[i] < 0.6:
-			            control_request.steering = -(35*math.py/180)*100
-			    
-			        if (51*math.pi/180) <= angles[i] <= (70*math.pi/180):
-			            if ranges[i] < 0.4:
-			                control_request.steering = -(25*math.py/180)*100
-
-			            if (71*math.pi/180) <= angles[i] <= (90*math.pi/180):
-			                if ranges[i] < 0.2:
-			                    control_request.steering = -(15*math.py/180)*100
-		                        elif 0.2 < ranges[i] < 0.4:
-		   		            control_request.steering = 0
-				        else:
-		 		            control_request.steering = (15*math.py/180)*100
-				    else:
-				       	control_request.steering = (25*math.py/180)*100
-			        else:
-				    control_request.steering = (35*math.py/180)*100
-			    else:
-				control_request.steering = (45*math.py/180)*100
+		        else:
+		 	    control_request.steering = target_angle
 
 		    if (31*math.pi/180) <= angles[i] <= (50*math.pi/180):
 		        if ranges[i] < 0.6:
 			    control_request.steering = -(35*math.py/180)*100
-			    
-			    if (51*math.pi/180) <= angles[i] <= (70*math.pi/180):
-			        if ranges[i] < 0.4:
-			            control_request.steering = -(25*math.py/180)*100
+			else:
+			    control_request.steering = target_angle
 
-			            if (71*math.pi/180) <= angles[i] <= (90*math.pi/180):
-			                if ranges[i] < 0.2:
-			                    control_request.steering = -(15*math.py/180)*100
-		                        elif 0.2 < ranges[i] < 0.4:
-		   		            control_request.steering = 0
-				        else:
-		 		            control_request.steering = (15*math.py/180)*100
-				    else:
-				       	control_request.steering = (25*math.py/180)*100
-			        else:
-				    control_request.steering = (35*math.py/180)*100
+		    if (51*math.pi/180) <= angles[i] <= (70*math.pi/180):
+		        if ranges[i] < 0.4:
+			    control_request.steering = -(25*math.py/180)*100
+			else:
+	 		    control_request.steering = target _angle
 
-		     if (51*math.pi/180) <= angles[i] <= (70*math.pi/180):
-		         if ranges[i] < 0.4:
-			     control_request.steering = -(25*math.py/180)*100
-
-			     if (71*math.pi/180) <= angles[i] <= (90*math.pi/180):
-			         if ranges[i] < 0.2:
-			             control_request.steering = -(15*math.py/180)*100
-		                 elif 0.2 < ranges[i] < 0.4:
-		   		     control_request.steering = 0
-				 else:
-		 		     control_request.steering = (15*math.py/180)*100
-			     else:
-				 control_request.steering = (25*math.py/180)*100
-
+		    if (71*math.pi/180) <= angles[i] <= (90*math.pi/180):
+			if ranges[i] < 0.2:
+			    control_request.steering = -(15*math.py/180)*100
+		        elif 0.2 < ranges[i] < 0.4:
+		            control_request.steering = 0
+			else:
+		 	    control_request.steering = (15*math.py/180)*100
+			
 		ctrl_pub.publish(control_request)
+
             else:
                 delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
                 target_pose = PointStamped()
