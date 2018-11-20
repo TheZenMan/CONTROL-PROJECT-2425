@@ -50,12 +50,11 @@ class State:
 ##############
 
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
-  
-   
-        ind = pind
-        tx = cx[ind]
-        ty = cy[ind]
-   
+
+
+    ind = pind
+    tx = cx[ind]
+    ty = cy[ind]
 
     alpha = math.atan2(ty - state.y, tx - state.x) - state.yaw
 
@@ -79,12 +78,13 @@ def calc_target_index(state, cx, cy):
 
     Lf = k * state.v + Lfc
 
-    while Lf > Ln:
+    if Lf > Ln:
         dx = cx[ind + 1] - cx[ind]
         dy = cy[ind + 1] - cy[ind]
         Ln += math.sqrt(dx ** 2 + dy ** 2)
-        
-    if Lf <= Ln:
+        ind=1
+
+    else:
 	ind = 1000
     return ind
 
@@ -92,7 +92,7 @@ def calc_target_index(state, cx, cy):
 # ROS #
 #######
 
-rospy.init_node('pure_pursuit_controller')
+rospy.init_node('pure_pursuit_planner')
 ctrl_pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_size=1)
 
@@ -121,7 +121,7 @@ def callback_mocap(odometry_msg): # ask Frank
         state_m = State(x_pos, y_pos, yaw, v)
 
         ind = calc_target_index(state_m, traj_x, traj_y)
-       
+
 
         if ind < len(traj_x)-1:
             print("### RUNNING TRAJECTORY")

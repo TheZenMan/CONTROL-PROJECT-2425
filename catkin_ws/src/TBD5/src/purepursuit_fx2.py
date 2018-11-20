@@ -50,8 +50,8 @@ class State:
 ##############
 
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
-    
-   ind = calc_target_index(state, cx, cy)
+
+    ind = calc_target_index(state, cx, cy)
 
     if pind >= ind:
         ind = pind
@@ -128,7 +128,7 @@ def callback_mocap(odometry_msg): # ask Frank
         state_m = State(x_pos, y_pos, yaw, v)
 
         ind = calc_target_index(state_m, traj_x, traj_y)
-        
+
 
         if ind < len(traj_x)-1:
             print("### RUNNING TRAJECTORY")
