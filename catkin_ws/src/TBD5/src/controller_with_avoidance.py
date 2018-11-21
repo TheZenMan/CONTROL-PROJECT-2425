@@ -101,10 +101,7 @@ def callback_mocap(odometry_msg):
         yaw = odometry_msg.pose.pose.orientation.z
 	v = odometry_msg.twist.twist.linear.x
 
-        state_m = State(x_pos, y_pos, yaw, v)
-
-        ind = calc_target_index(state_m, traj_x, traj_y)
-
+       
          if scan.ranges < 1.2:
 	    angle_list = []
 	   
@@ -188,7 +185,8 @@ def callback_mocap(odometry_msg):
         else:
 	    if ind < len(traj_x)-1
 		print ("### RUNNING TRAJECTORY")
-
+		 
+        	ind = calc_target_index(state_m, traj_x, traj_y)
             	delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
 
             	target_pose = PointStamped()
