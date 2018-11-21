@@ -18,7 +18,7 @@ k = 0.4  # look forward gain
 Lfc = 0.4# look-ahead distance
 L = 0.32  # [m] wheel base of
 
-target_speed = 40  # [PWM %]
+target_speed = 25  # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -66,7 +66,7 @@ def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we w
 #define index for path planning
 def calc_target_index(state, cx, cy):
     ind=1
-    d=0.05
+    d=0.06
     dx = state.x - cx[ind]
     dy = state.y - cy[ind]
     Ln = math.sqrt(dx ** 2 + dy ** 2)
@@ -76,6 +76,12 @@ def calc_target_index(state, cx, cy):
 	ind = len(cx)+1
     print ind
     return ind
+
+def dist_target(state, cx, cy):
+    dx = state.x - cx[1]
+    dy = state.y - cy[1]
+    dist_tg = math.sqrt(dx **2 + dy **2)
+    return dist_tg
 
 #######
 # ROS #
@@ -92,9 +98,12 @@ target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_siz
 traj_x = []
 traj_y = []
 ranges=[]
+d_min = 0.06
+
 
 def callback_mocap(odometry_msg):
     global ranges
+    global d_min
     if not len(traj_x) == 0 and not len(ranges) == 0:
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
@@ -104,8 +113,11 @@ def callback_mocap(odometry_msg):
         state_m = State(x_pos, y_pos, yaw, v)
 
         ind = calc_target_index(state_m, traj_x, traj_y)
+        min_dist = min(ranges)
 
-        if ranges < 1.2:
+        dist_tg = dist_target(state_m, traj_x, traj_y)
+
+        if min_dist < 0.6 and dist_tg > d_min:
 	    angle_list = []
 
 	    for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
@@ -126,49 +138,49 @@ def callback_mocap(odometry_msg):
 		 	 #   control_request.steering = target_angle
 
 		if -(69*math.pi/180) <= angle_list[i] <= -(50*math.pi/180):
-		    if ranges[i] < 0.4:
+		    if ranges[i] < 0.3:
 			control_request.steering = (25*math.pi/180)*100
 			ctrl_pub.publish(control_request)
 		    #else:
 			 #   control_request.steering = target_angle
 
 		if -(49*math.pi/180) <= angle_list[i] <= -(30*math.pi/180):
-		    if ranges[i] < 0.6:
+		    if ranges[i] < 0.4:
 			control_request.steering = (35*math.pi/180)*100
 			ctrl_pub.publish(control_request)
 		    #else:
 	 		#   control_request.steering = target _angle
 
 		if -(29*math.pi/180) <= angle_list[i] <= -(10*math.pi/180):
-		    if ranges[i] < 0.8:
+		    if ranges[i] < 0.5:
 			control_request.steering = (45*math.pi/180)*100
 			ctrl_pub.publish(control_request)
 		    #else:
 		 	#    control_request.steering = -(15*math.py/180)*100
 
 		if -(9*math.pi/180) < angle_list[i] <= (10*math.pi/180):
-		    if ranges[i] < 1:
+		    if ranges[i] < 0.6:
 			control_request.steering = -(55*math.pi/180)*100
 			ctrl_pub.publish(control_request)
 		    #else:
 			#   control_request.steering = target_angle
 
 		if (11*math.pi/180) <= angle_list[i] <= (30*math.pi/180):
-		    if ranges[i] < 0.8:
+		    if ranges[i] < 0.5:
     			control_request.steering = -(45*math.pi/180)*100
 			ctrl_pub.publish(control_request)
 		    #else:
 		 	#   control_request.steering = target_angle
 
 		if (31*math.pi/180) <= angle_list[i] <= (50*math.pi/180):
-		    if ranges[i] < 0.6:
+		    if ranges[i] < 0.4:
 			control_request.steering = -(35*math.pi/180)*100
 			ctrl_pub.publish(control_request)
 		    #else:
 			#   control_request.steering = target_angle
 
 		if (51*math.pi/180) <= angle_list[i] <= (70*math.pi/180):
-		    if ranges[i] < 0.4:
+		    if ranges[i] < 0.3:
 			control_request.steering = -(25*math.pi/180)*100
 			ctrl_pub.publish(control_request)
 		    #else:
