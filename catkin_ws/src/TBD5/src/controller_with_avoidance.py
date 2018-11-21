@@ -110,7 +110,7 @@ distance_list=[]
 
 def callback_mocap(odometry_msg):
     global distance_list
-    if not len(traj_x) == 0: #and not len(distance_list) == 0:
+    if not len(traj_x) == 0 and not len(distance_list) == 0:
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
         yaw = odometry_msg.pose.pose.orientation.z
@@ -123,8 +123,8 @@ def callback_mocap(odometry_msg):
         if ind < len(traj_x)-1:
 	    angle_list = []
 	    # if scan.ranges < 1:
-	    for i in range(len(scan.ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
-		angle = scan.angle_min + i * scan.angle_increment
+	    for i in range(len(distance_list)): # the program might be checking in each increment angle if there is obstacle in the zone
+		angle = angle_min + i * increment
 	   	angle_list.append(angle)
             
                 control_request = lli_ctrl_request()
@@ -225,8 +225,12 @@ def callback_mocap(odometry_msg):
 
 def callback_lidar(scan):
     global distance_list
+    global angle_min
+    global increment
     if not len(traj_x) == 0: #both subscribers dont start same time
         distance_list = scan.ranges
+	angle_min = scan.angle_min
+	increment = scan.angle_increment
 
 def callback_traj(traj_msg):
 
