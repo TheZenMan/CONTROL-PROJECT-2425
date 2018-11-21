@@ -3,6 +3,8 @@
 import rospy
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+#import maplotlib.animation as animation
 
 from geometry_msgs.msg import Twist
 from low_level_interface.msg import lli_ctrl_request
@@ -33,7 +35,26 @@ v = []
 #####################
 # CLASS DEFINITIONS #
 #####################
-
+#################
+#VISUALIZATION
+###############
+x = np.linspace(-np.pi, np.pi, 720)
+y = np.random.random_integers(1,100,720)
+plt.ion()
+fig = plt.figure()
+ax = fig.add_subplot(111)
+line1, = ax.plot(x,y,'r-')
+plt.xlabel('angles')
+plt.ylabel('ranges')
+counter=0
+while counter<1000:
+    line1.set_ydata(np.random.random_integers(1,100,720))
+    fig.canvas.draw()
+    counter=counter+1
+#def update_hist(num, data):
+#    plt.cla()
+#    plt.hist(data[num])
+#fig = plt.figure()
 class State:
 
     def __init__(self, x, y, yaw, v):
@@ -119,11 +140,11 @@ def callback_mocap(odometry_msg):
 
         if min_dist < 0.6 and dist_tg > d_min:
 	    angle_list = []
-
 	    for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
 	        angle = angle_min + i * increment
 	   	angle_list.append(angle)
-
+                #animation=animation.FuncAnimation(fig,update_hist, 720, fargs =(angles_list,))
+                #plt.show()
                 control_request = lli_ctrl_request()
 		control_request.velocity = 25
 
@@ -195,8 +216,7 @@ def callback_mocap(odometry_msg):
 		    #else:
 		 	#   control_request.steering = (15*math.py/180)*100
 
-		    #ctrl_pub.publish(control_request)
-
+		    #ctrl_pub.publish(control_request)angle_list)
         else:
             if ind < len(traj_x)-1:
 		print ("### RUNNING TRAJECTORY")
@@ -224,6 +244,7 @@ def callback_mocap(odometry_msg):
         	control_request.steering = 0
 
     	    ctrl_pub.publish(control_request)
+
 
 def callback_lidar(scan):
     global ranges
