@@ -189,6 +189,7 @@ def callback_mocap(odometry_msg):
             if ind < len(traj_x)-1:
 		print ("### RUNNING TRAJECTORY")
 
+        	ind = calc_target_index(state_m, traj_x, traj_y)
             	delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
 
             	target_pose = PointStamped()
