@@ -122,7 +122,8 @@ def callback_mocap(odometry_msg):
 
         if ind < len(traj_x)-1:
 	    angle_list = []
-	    for i in range(len(scan.ranges)):
+	    # if scan.ranges < 1:
+	    for i in range(len(scan.ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
 		angle = scan.angle_min + i * scan.angle_increment
 	   	angle_list.append(angle)
             
@@ -199,28 +200,28 @@ def callback_mocap(odometry_msg):
 			
 		    #ctrl_pub.publish(control_request)
 	
-            else:
-                delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
-                target_pose = PointStamped()
-                target_pose.header.stamp = rospy.Time.now()
-                target_pose.header.frame_id = '/qualisys'
-                target_pose.point.x = traj_x[ind]
-                target_pose.point.y = traj_y[ind]
-                target_pub.publish(target_pose)
-
-                target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
-                control_request = lli_ctrl_request()
-                control_request.velocity = target_speed
-                control_request.steering = target_angle
-
         else:
-            print("### DONE WITH TRAJECTORY")
-            print(len(distance_list))
-            control_request = lli_ctrl_request()
-            control_request.velocity = 0
-            control_request.steering = 0
+            delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
+            target_pose = PointStamped()
+            target_pose.header.stamp = rospy.Time.now()
+            target_pose.header.frame_id = '/qualisys'
+            target_pose.point.x = traj_x[ind]
+            target_pose.point.y = traj_y[ind]
+            target_pub.publish(target_pose)
 
-        ctrl_pub.publish(control_request)
+            target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
+            control_request = lli_ctrl_request()
+            control_request.velocity = target_speed
+            control_request.steering = target_angle
+
+    else:
+        print("### DONE WITH TRAJECTORY")
+        print(len(distance_list))
+        control_request = lli_ctrl_request()
+        control_request.velocity = 0
+        control_request.steering = 0
+
+    ctrl_pub.publish(control_request)
 
 def callback_lidar(scan):
     global distance_list
