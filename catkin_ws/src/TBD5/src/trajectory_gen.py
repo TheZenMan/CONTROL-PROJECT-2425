@@ -159,7 +159,7 @@ def main():
     # initialize ros
     rospy.init_node('trajectory_planner')
 
-    planner_mode = rospy.get_param('/trajectory_planner/planner_mode', "CIRCLE")
+    planner_mode = rospy.get_param('/trajectory_planner/planner_mode', "POINT")
 
 
     shape_handler = ShapeHandler(planner_mode)
