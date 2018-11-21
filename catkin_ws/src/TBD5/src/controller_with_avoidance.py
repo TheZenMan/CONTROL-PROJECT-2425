@@ -132,7 +132,7 @@ def callback_mocap(odometry_msg):
 		    #else:
 			 #   control_request.steering = target_angle
 
-		if -(49*math.pi/180) <= angle_list[i] <= (30*math.pi/180):
+		if -(49*math.pi/180) <= angle_list[i] <= -(30*math.pi/180):
 		    if ranges[i] < 0.6:
 			control_request.steering = (35*math.pi/180)*100
 			ctrl_pub.publish(control_request)
