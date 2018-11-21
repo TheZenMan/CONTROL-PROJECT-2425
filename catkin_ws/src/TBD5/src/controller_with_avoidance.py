@@ -91,11 +91,11 @@ target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_siz
 
 traj_x = []
 traj_y = []
-distance_list=[]
+ranges=[]
 
 def callback_mocap(odometry_msg):
-    global distance_list
-    if not len(traj_x) == 0 and not len(distance_list) == 0:
+    global ranges
+    if not len(traj_x) == 0 and not len(ranges) == 0:
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
         yaw = odometry_msg.pose.pose.orientation.z
@@ -108,7 +108,7 @@ def callback_mocap(odometry_msg):
         if ind < len(traj_x)-1:
 	    angle_list = []
 	    # if scan.ranges < 1:
-	    for i in range(len(distance_list)): # the program might be checking in each increment angle if there is obstacle in the zone
+	    for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
 		angle = angle_min + i * increment
 	   	angle_list.append(angle)
             
@@ -201,7 +201,7 @@ def callback_mocap(odometry_msg):
 
     else:
         print("### DONE WITH TRAJECTORY")
-        print(len(distance_list))
+        print(len(ranges))
         control_request = lli_ctrl_request()
         control_request.velocity = 0
         control_request.steering = 0
@@ -209,11 +209,11 @@ def callback_mocap(odometry_msg):
     ctrl_pub.publish(control_request)
 
 def callback_lidar(scan):
-    global distance_list
+    global ranges
     global angle_min
     global increment
     if not len(traj_x) == 0: #both subscribers dont start same time
-        distance_list = scan.ranges
+        ranges = scan.ranges
 	angle_min = scan.angle_min
 	increment = scan.angle_increment
 
