@@ -110,7 +110,7 @@ distance_list=[]
 
 def callback_mocap(odometry_msg):
     global distance_list
-    if not len(traj_x) == 0 #and not len(distance_list) == 0:
+    if not len(traj_x) == 0: #and not len(distance_list) == 0:
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
         yaw = odometry_msg.pose.pose.orientation.z
