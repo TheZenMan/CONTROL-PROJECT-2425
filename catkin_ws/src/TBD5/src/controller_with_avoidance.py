@@ -20,7 +20,7 @@ k = 0.4  # look forward gain
 Lfc = 0.4# look-ahead distance
 L = 0.32  # [m] wheel base of
 
-target_speed = 25  # [PWM %]
+target_speed = 25 # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -38,19 +38,19 @@ v = []
 #################
 #VISUALIZATION
 ###############
-x = np.linspace(-np.pi, np.pi, 720)
-y = np.random.random_integers(1,100,720)
-plt.ion()
-fig = plt.figure()
-ax = fig.add_subplot(111)
-line1, = ax.plot(x,y,'r-')
-plt.xlabel('angles')
-plt.ylabel('ranges')
-counter=0
-while counter<1000:
-    line1.set_ydata(np.random.random_integers(1,100,720))
-    fig.canvas.draw()
-    counter=counter+1
+#x = np.linspace(-np.pi, np.pi, 720)
+#y = np.random.random_integers(1,100,720)
+#plt.ion()
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
+#line1, = ax.plot(x,y,'r-')
+#plt.xlabel('angles')
+#plt.ylabel('ranges')
+#counter=0
+#while counter<1000:
+#    line1.set_ydata(np.random.random_integers(1,100,720))
+#    fig.canvas.draw()
+#    counter=counter+1
 #def update_hist(num, data):
 #    plt.cla()
 #    plt.hist(data[num])
@@ -129,7 +129,7 @@ def callback_mocap(odometry_msg):
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
         yaw = odometry_msg.pose.pose.orientation.z
-	v = odometry_msg.twist.twist.linear.x
+        v = odometry_msg.twist.twist.linear.x
 
         state_m = State(x_pos, y_pos, yaw, v)
 
@@ -146,7 +146,7 @@ def callback_mocap(odometry_msg):
                 #animation=animation.FuncAnimation(fig,update_hist, 720, fargs =(angles_list,))
                 #plt.show()
                 control_request = lli_ctrl_request()
-		control_request.velocity = 25
+        	control_request.velocity = 25
 
 		    # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car uses [rad] then mutliply by 100 because the car takes in percentage to steer
 		if -(90*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
