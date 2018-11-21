@@ -48,19 +48,10 @@ class State:
 
 def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we want to follow
 
-    ind = calc_target_index(state, cx, cy)
 
-    if pind >= ind:
-        ind = pind
-
-    if ind < len(cx):
-        tx = cx[ind]
-        ty = cy[ind]
-    else:
-        tx = cx[-1]
-        ty = cy[-1]
-        ind = len(cx) - 1
-
+    ind = pind
+    tx = cx[ind]
+    ty = cy[ind]
     alpha = math.atan2(ty - state.y, tx - state.x) - state.yaw
 
     if state.v < 0:  # back
@@ -72,24 +63,18 @@ def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we w
 
     return delta, ind
 
+#define index for path planning
 def calc_target_index(state, cx, cy):
-
-    # search nearest point index
-    dx = [state.x - icx for icx in cx]
-    dy = [state.y - icy for icy in cy]
-    d = [abs(math.sqrt(idx ** 2 + idy ** 2)) for (idx, idy) in zip(dx, dy)]
-    ind = d.index(min(d))
-    Ln = 0.0
-
-    Lf = k * state.v + Lfc
-
-    # search look ahead target point index
-    while Lf > Ln and (ind + 1) < len(cx):
-        dx = cx[ind + 1] - cx[ind]
-        dy = cy[ind + 1] - cy[ind]
-        Ln += math.sqrt(dx ** 2 + dy ** 2)
-        ind += 1
-
+    ind=1
+    d=0.05
+    dx = state.x - cx[ind]
+    dy = state.y - cy[ind]
+    Ln = math.sqrt(dx ** 2 + dy ** 2)
+    if d < Ln:
+	ind = 1
+    else:
+	ind = len(cx)+1
+    print ind
     return ind
 
 #######
