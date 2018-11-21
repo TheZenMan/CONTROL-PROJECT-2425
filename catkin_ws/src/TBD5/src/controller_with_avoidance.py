@@ -105,11 +105,11 @@ def callback_mocap(odometry_msg):
 
         ind = calc_target_index(state_m, traj_x, traj_y)
 
-         if scan.ranges < 1.2:
+        if ranges < 1.2:
 	    angle_list = []
-	   
+
 	    for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
-		angle = angle_min + i * increment
+	        angle = angle_min + i * increment
 	   	angle_list.append(angle)
 
                 control_request = lli_ctrl_request()
@@ -186,7 +186,7 @@ def callback_mocap(odometry_msg):
 		    #ctrl_pub.publish(control_request)
 
         else:
-	    if ind < len(traj_x)-1
+            if ind < len(traj_x)-1:
 		print ("### RUNNING TRAJECTORY")
 
             	delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
@@ -205,7 +205,7 @@ def callback_mocap(odometry_msg):
 
     	    else:
         	print("### DONE WITH TRAJECTORY")
-        	
+
         	control_request = lli_ctrl_request()
         	control_request.velocity = 0
         	control_request.steering = 0
