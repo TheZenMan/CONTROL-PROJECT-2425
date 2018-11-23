@@ -87,14 +87,14 @@ def pure_pursuit_control(state, cx, cy, pind): #cx, cy are the trajectories we w
 #define index for path planning
 def calc_target_index(state, cx, cy):
     ind=1
-    d=0.1
+    d=0.2
     dx = state.x - cx[ind]
     dy = state.y - cy[ind]
     Ln = math.sqrt(dx ** 2 + dy ** 2)
     if d < Ln:
-	ind = 1
+        ind = 1
     else:
-	ind = len(cx)+1
+        ind = len(cx)+1
     print ind
     print Ln
     return ind
@@ -120,7 +120,7 @@ target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_siz
 traj_x = []
 traj_y = []
 ranges=[]
-d_min = 0.05
+d_min = 0.1
 
 
 def callback_mocap(odometry_msg):
@@ -140,85 +140,85 @@ def callback_mocap(odometry_msg):
         dist_tg = dist_target(state_m, traj_x, traj_y)
 
         if min_dist < 0.6 and dist_tg > d_min:
-	    angle_list = []
-	    for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
-	        angle = angle_min + i * increment
-	   	angle_list.append(angle)
+            angle_list = []
+            for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
+                angle = angle_min + i * increment
+                angle_list.append(angle)
                 #animation=animation.FuncAnimation(fig,update_hist, 720, fargs =(angles_list,))
                 #plt.show()
                 control_request = lli_ctrl_request()
-        	control_request.velocity = 25
+                control_request.velocity = 25
 
-		    # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car uses [rad] then mutliply by 100 because the car takes in percentage to steer
-		if -(95*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
-		    if ranges[i] < 0.2:
-    			control_request.steering = (15*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #elif 0.2 < ranges[i] < 0.4:
-		         #    control_request.steering = 0
-		    #else:
-		 	 #   control_request.steering = target_angle
+            # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car uses [rad] then mutliply by 100 because the car takes in percentage to steer
+                if -(95*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
+                    if ranges[i] < 0.2:
+                        control_request.steering = (15*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #elif 0.2 < ranges[i] < 0.4:
+                 #    control_request.steering = 0
+            #else:
+             #   control_request.steering = target_angle
 
-		if -(70*math.pi/180) < angle_list[i] <= -(50*math.pi/180):
-		    if ranges[i] < 0.3:
-			control_request.steering = (25*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #else:
-			 #   control_request.steering = target_angle
+                if -(70*math.pi/180) < angle_list[i] <= -(50*math.pi/180):
+                    if ranges[i] < 0.3:
+                        control_request.steering = (25*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+             #   control_request.steering = target_angle
 
-		if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
-		    if ranges[i] < 0.4:
-			control_request.steering = (35*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #else:
-	 		#   control_request.steering = target _angle
+                if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
+                    if ranges[i] < 0.4:
+                        control_request.steering = (35*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target _angle
 
-		if -(30*math.pi/180) < angle_list[i] <= -(10*math.pi/180):
-		    if ranges[i] < 0.5:
-			control_request.steering = (45*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #else:
-		 	#    control_request.steering = -(15*math.py/180)*100
+                if -(30*math.pi/180) < angle_list[i] <= -(10*math.pi/180):
+                    if ranges[i] < 0.5:
+                        control_request.steering = (45*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #    control_request.steering = -(15*math.py/180)*100
 
-		if -(10*math.pi/180) < angle_list[i] <= (10*math.pi/180):
-		    if ranges[i] < 0.6:
-			control_request.steering = -(55*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #else:
-			#   control_request.steering = target_angle
+                if -(10*math.pi/180) < angle_list[i] <= (10*math.pi/180):
+                    if ranges[i] < 0.6:
+                        control_request.steering = -(55*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target_angle
 
-		if (10*math.pi/180) < angle_list[i] <= (30*math.pi/180):
-		    if ranges[i] < 0.5:
-    			control_request.steering = -(45*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #else:
-		 	#   control_request.steering = target_angle
+                if (10*math.pi/180) < angle_list[i] <= (30*math.pi/180):
+                    if ranges[i] < 0.5:
+                        control_request.steering = -(45*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target_angle
 
-		if (30*math.pi/180) < angle_list[i] <= (50*math.pi/180):
-		    if ranges[i] < 0.4:
-			control_request.steering = -(35*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #else:
-			#   control_request.steering = target_angle
+                if (30*math.pi/180) < angle_list[i] <= (50*math.pi/180):
+                    if ranges[i] < 0.4:
+                        control_request.steering = -(35*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target_angle
 
-		if (50*math.pi/180) < angle_list[i] <= (70*math.pi/180):
-		    if ranges[i] < 0.3:
-			control_request.steering = -(25*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #else:
-	 		#   control_request.steering = target _angle
+                if (50*math.pi/180) < angle_list[i] <= (70*math.pi/180):
+                    if ranges[i] < 0.3:
+                        control_request.steering = -(25*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target _angle
 
-		if (70*math.pi/180) <= angle_list[i] <= (95*math.pi/180):
-		    if ranges[i] < 0.2:
-			control_request.steering = -(15*math.pi/180)*100
-			ctrl_pub.publish(control_request)
-		    #elif 0.2 < ranges[i] < 0.4:
-		     #   control_request.steering = 0
-		    #else:
-		 	#   control_request.steering = (15*math.py/180)*100
-                else:
-                    control_request_steering = 0
-		    ctrl_pub.publish(control_request)
+                if (70*math.pi/180) <= angle_list[i] <= (95*math.pi/180):
+                    if ranges[i] < 0.2:
+                        control_request.steering = -(15*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #elif 0.2 < ranges[i] < 0.4:
+             #   control_request.steering = 0
+            #else:
+            #   control_request.steering = (15*math.py/180)*100
+               # else:
+               #     control_request_steering = 0
+            #ctrl_pub.publish(control_request)
         else:
             if ind < len(traj_x)-1:
                 print('Running Trajectory')
@@ -227,8 +227,8 @@ def callback_mocap(odometry_msg):
                 delta, ind =  pure_pursuit_control(state_m, traj_x, traj_y, ind)
 
                 target_pose = PointStamped()
-	        target_pose.header.stamp = rospy.Time.now()
-	        target_pose.header.frame_id = '/qualisys'
+                target_pose.header.stamp = rospy.Time.now()
+                target_pose.header.frame_id = '/qualisys'
                 target_pose.point.x = traj_x[ind]
                 target_pose.point.y = traj_y[ind]
                 target_pub.publish(target_pose)
@@ -238,14 +238,16 @@ def callback_mocap(odometry_msg):
                 control_request.velocity = target_speed
                 control_request.steering = target_angle
 
-    	    else:
+                ctrl_pub.publish(control_request)
+
+            else:
                 print("### DONE WITH TRAJECTORY")
 
                 control_request = lli_ctrl_request()
                 control_request.velocity = 0
                 control_request.steering = 0
 
-    	    ctrl_pub.publish(control_request)
+                ctrl_pub.publish(control_request)
 
 
 def callback_lidar(scan):
@@ -254,8 +256,8 @@ def callback_lidar(scan):
     global increment
     if not len(traj_x) == 0: #both subscribers dont start same time
         ranges = scan.ranges
-	angle_min = scan.angle_min
-	increment = scan.angle_increment
+        angle_min = scan.angle_min
+        increment = scan.angle_increment
 
 def callback_traj(traj_msg):
 
@@ -266,8 +268,8 @@ def callback_traj(traj_msg):
     traj_x, traj_y = [], []
 
     for traj_pt in traj:
-	traj_x.append(traj_pt.position.x)
-	traj_y.append(traj_pt.position.y)
+        traj_x.append(traj_pt.position.x)
+        traj_y.append(traj_pt.position.y)
 
 def main():
 
