@@ -2,7 +2,6 @@
 
 """
     # Frank Jiang
-    # 940328-3378
     # frankji@kth.se
 """
 

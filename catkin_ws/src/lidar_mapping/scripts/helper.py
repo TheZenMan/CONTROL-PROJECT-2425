@@ -24,15 +24,15 @@ except ImportError:
 
 
 # Parameters
-map_frame_id = "odom"
-map_resolution = 0.025
-map_width = 300
-map_height = 300
+map_frame_id = "qualisys"
+map_resolution = 0.05 # size of each index in [m]
+map_width = 300 # max index of grid width
+map_height = 300 # max index of grid height
 map_origin_x = -map_resolution * map_width / 2
 map_origin_y = -map_resolution * map_height / 2
 map_origin_yaw = 0
 
-inflate_radius = 5
+inflate_radius = 4
 
 unknown_space = np.int8(-1)
 free_space = np.int8(0)

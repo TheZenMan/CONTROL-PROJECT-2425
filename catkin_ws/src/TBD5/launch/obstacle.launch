@@ -16,4 +16,6 @@
     <node pkg="TBD5" type="controller_with_avoidance.py" name="pp_lidar_controller" output="screen"></node>
 
     <include file="$(find urg_node)/launch/urg_lidar.launch"/>
+    <node pkg="lidar_mapping" type="main.py" name="occupancy_grid_handler" output="screen"></node>
+
 </launch>

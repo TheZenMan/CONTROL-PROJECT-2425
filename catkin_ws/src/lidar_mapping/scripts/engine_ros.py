@@ -32,7 +32,7 @@ class EngineROS:
     def __init__(self, map_frame_id, map_resolution, map_width, map_height,
                  map_origin_x, map_origin_y, map_origin_yaw, inflate_radius,
                  unknown_space, free_space, c_space, occupied_space, optional=None):
-        rospy.init_node('Mapper')
+        rospy.init_node('occupancy_grid_handler')
         self.__pose = None
         self.__map = GridMap(map_frame_id, map_resolution, map_width, map_height,
                          map_origin_x, map_origin_y, map_origin_yaw)
@@ -42,7 +42,7 @@ class EngineROS:
         self.__mapping = Mapping(unknown_space, free_space, c_space,
                                  occupied_space, inflate_radius, optional)
 
-        self.__odom_sub = message_filters.Subscriber('odom', OdometryROS)
+        self.__odom_sub = message_filters.Subscriber('SVEA5/odom', OdometryROS)
         self.__scan_sub = message_filters.Subscriber('scan', LaserScanROS)
 
         self.__ts = message_filters.ApproximateTimeSynchronizer([self.__odom_sub,
