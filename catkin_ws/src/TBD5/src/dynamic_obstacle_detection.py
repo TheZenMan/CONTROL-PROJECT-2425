@@ -1,19 +1,26 @@
+#! /usr/bin/env python
+
 import rospy
 import math
 import numpy as np
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import LaserScan
 
-rospy.init_node('dynamic obstacle dectection')
+rospy.init_node('dynamic_obstacle_detection')
 
+x_list=[]
+y_list=[]
+d_list=[]
 
 
 def callback_mocap(odometry_msg):
     global ranges
-    x_list=[]
-    y_list=[]
-    d_list=[]
+    global x_list
+    global y_list
+    global d_list
+
     if not len(ranges) == 0:
 	x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
@@ -28,14 +35,15 @@ def callback_mocap(odometry_msg):
 		x_list.append(x_g)
 		y_list.append(y_g)
     		d_list.append(d)
-		
+
 
 def callback_lidar(scan):
 
     global ranges
     global angle_min
-    global increment  
-    global t  
+    global increment
+    global t
+    t=0
     ranges = scan.ranges
     angle_min = scan.angle_min
     increment = scan.angle_increment
@@ -43,18 +51,18 @@ def callback_lidar(scan):
     t += scan_time
     x,y,x_n,y_n = obstacle_detection(t,x_list,y_list,d_list)
 
-def obstacle_detection(t,x_list,y_list,d_list) 
+def obstacle_detection(t,x_list,y_list,d_list):
     global scan_time
     x = []
-    y = [] 
+    y = []
     x_n = []
-    y_n = [] 
+    y_n = []
     if t == scan_time:
 	x_1 = x_list
 	y_1 = y_list
 	d_1 = d_list
     if t == 1000* scan_time:
-	x_2 = x_list 
+	x_2 = x_list
 	y_2 = y_list
         d_2 = d_list
     for i in range(len(d_1)):
@@ -64,9 +72,9 @@ def obstacle_detection(t,x_list,y_list,d_list)
 		x_n.append(x_2[i])
 		y_n.append(y_2[i])
 	return x,y,x_n,y_n
-		
 
-  
+
+
 def main():
     t = 0
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
