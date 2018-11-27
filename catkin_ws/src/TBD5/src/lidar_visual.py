@@ -27,7 +27,7 @@ def callback(scan):
 	fig.canvas.draw()
 #using if loops to get data from scan.ranges?
 
-rospy.init_node('laser_subscriber')
+rospy.init_node('lidar_visual_node')
 sub = rospy.Subscriber('\scan', LaserScan, callback)
 
 rospy.spin()
