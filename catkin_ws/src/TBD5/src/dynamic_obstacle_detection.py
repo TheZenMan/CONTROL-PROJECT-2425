@@ -13,7 +13,12 @@ rospy.init_node('dynamic_obstacle_detection')
 x_list=[]
 y_list=[]
 d_list=[]
-
+ranges=[]
+t=0
+x = []
+y = []
+x_n = []
+y_n = []
 
 def callback_mocap(odometry_msg):
     global ranges
@@ -43,7 +48,7 @@ def callback_lidar(scan):
     global angle_min
     global increment
     global t
-    t=0
+
     ranges = scan.ranges
     angle_min = scan.angle_min
     increment = scan.angle_increment
@@ -53,10 +58,11 @@ def callback_lidar(scan):
 
 def obstacle_detection(t,x_list,y_list,d_list):
     global scan_time
-    x = []
-    y = []
-    x_n = []
-    y_n = []
+    global x
+    global y
+    global x_n
+    global y_n
+   
     if t == scan_time:
 	x_1 = x_list
 	y_1 = y_list
@@ -76,7 +82,6 @@ def obstacle_detection(t,x_list,y_list,d_list):
 
 
 def main():
-    t = 0
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
     lidar_sub = rospy.Subscriber('/scan', LaserScan, callback_lidar)
     rospy.spin()
