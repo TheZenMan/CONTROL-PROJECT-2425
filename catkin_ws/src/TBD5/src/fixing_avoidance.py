@@ -122,6 +122,26 @@ def callback_mocap(odometry_msg):
             control_request.velocity = 20
             control_request.steering = 0
             ctrl_pub.publish(control_request)
+            w = 0 # width of open space between 2 obstacles
+            if min_dist < 0.05:
+                control_request = lli_ctrl_request()
+                control_request.velocity = 0
+                control_request.steering = 0
+                ctrl_pub.publish(control_request)
+            if min_dist < 0.2:
+                for i in range(len(ranges)):
+                    angle = angle_min + i * increment
+                    angle_list.append(angle)
+                    
+                    w = 
+                    
+                    b = 0.28 # width of car
+                    if min_dist < 0.2 and :
+                        if b < w:
+                            control_request = lli_ctrl_request()
+                            control_request.velocity = 20
+                            control_request.steering = 0
+                            ctrl_pub.publish(control_request)
             for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
                 angle = angle_min + i * increment
                 angle_list.append(angle)
@@ -210,6 +230,10 @@ def callback_mocap(odometry_msg):
                         ctrl_pub.publish(control_request)
 
         else:
+            control_request = lli_ctrl_request() # think the car stopped when it 
+            control_request.velocity = 20        # passed all obstacles, so this 
+            control_request.steering = 0         # should bump it a bit forward 
+            ctrl_pub.publish(control_request)    # and prevent it to be stopped
             if ind < len(traj_x)-1:
                 print('Running Trajectory')
 
