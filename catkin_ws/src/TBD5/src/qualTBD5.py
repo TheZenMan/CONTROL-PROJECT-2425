@@ -30,7 +30,7 @@ def odometry_callback(odometry_msg):
 	ori_y = odometry_msg.pose.pose.orientation.y
 	ori_z = odometry_msg.pose.pose.orientation.z
 	ori_w = odometry_msg.pose.pose.orientation.w
-	
+
 	g_vel_x = odometry_msg.twist.twist.linear.x
 	g_vel_y = odometry_msg.twist.twist.linear.y
 
@@ -41,10 +41,10 @@ def odometry_callback(odometry_msg):
 	roll  = euler[0]
 	pitch = euler[1]
 	yaw   =  euler[2]
-	
+
 	# Compute body frame velocity
 	b_vel_x = g_vel_x * cos(yaw) - g_vel_y * sin(yaw)
-	b_vel_y = g_vel_x * sin(yaw) + g_vel_y * cos(yaw)   
+	b_vel_y = g_vel_x * sin(yaw) + g_vel_y * cos(yaw)
 	b_vel = abs(sqrt(b_vel_x ** 2 + b_vel_y ** 2)) # Forward velocity of the car
 
 	# Packing data, create a variable that contains message to publish
@@ -53,7 +53,7 @@ def odometry_callback(odometry_msg):
 	qualisys_data.pose.pose.position.y = odom_position_y
 	qualisys_data.pose.pose.orientation.z = yaw
 	qualisys_data.twist.twist.linear.x = b_vel
-	
+
 	pub.publish(qualisys_data) # Publish the message within the 'qualisys_data' variable
 
 rospy.init_node('qualTBD5_odom') # Initiate a Node named 'qualTBD5_odom'
