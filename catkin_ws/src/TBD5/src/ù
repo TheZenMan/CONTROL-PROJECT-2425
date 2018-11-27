@@ -9,10 +9,11 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
 
 rospy.init_node('dynamic_obstacle_detection')
-ranges=[]
+
 x_list=[]
 y_list=[]
 d_list=[]
+ranges=[]
 t=0
 x = []
 y = []
@@ -25,14 +26,9 @@ def callback_mocap(odometry_msg):
     global y_list
     global d_list
 
-
     if not len(ranges) == 0:
 	x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
-       # x_list=[]
-        #y_list=[]
-        #d_list=[]
-
 	for i in range(len(ranges)):
 		o_distance = ranges[i]
 		o_angle = angle_min + i * increment
@@ -44,7 +40,6 @@ def callback_mocap(odometry_msg):
 		x_list.append(x_g)
 		y_list.append(y_g)
     		d_list.append(d)
-               # print (len(d_1))
        # x,y,x_n,y_n = obstacle_detection(t,x_list,y_list,d_list)
 
 def callback_lidar(scan):
@@ -59,11 +54,9 @@ def callback_lidar(scan):
     angle_min = scan.angle_min
     increment = scan.angle_increment
     scan_time = scan.scan_time
-    #print(len(ranges))
     t += scan_time
     obstacle_detection(t,x_list,y_list,d_list)
-  #  t += scan_time*len(ranges)
-    if t > 0.18:
+    if 0.06 < t < 0.07:
         compare(x_1,y_1,d_1,x_2,y_2,d_2)
 
 def obstacle_detection(t,x_list,y_list,d_list):
@@ -75,40 +68,30 @@ def obstacle_detection(t,x_list,y_list,d_list):
     global y_2
     global d_2
     print(t)
-    if 0.05 < t < 0.075:
+    if t < 0.03:
 	x_1 = x_list
 	y_1 = y_list
 	d_1 = d_list
-    #print("len",len(d_1))
-    if 0.15 < t < 0.18:
+    if 0.05<t<0.06 :
 	x_2 = x_list
 	y_2 = y_list
         d_2 = d_list
-    #print(d_2)
      #for i in range(len(d_1)):
 #	if  abs(d_1[i] - d_2[i]) > 0.01:
 #		x.append(x_1[i])
 #		y.append(y_1[i])
 #		x_n.append(x_2[i])
 #		y_n.append(y_2[i])
-    if t>0.18:
+    if t>0.06:
         print('Done')
 
-
 def compare(x_1,y_1,d_1,x_2,y_2,d_2):
-    #print ("len=",len(d_1))
-    #print ("len1=",len(d_2))
-    for i in range(len(x_1)):
-        #print('d1',d_1[i])
-        #print('d2',d_2[i])
+    for i in range(len(d_1)):
         if abs(d_1[i]-d_2[i]) > 0.01:
-            print ('work')
             x.append(x_1[i])
             y.append(y_1[i])
             x_n.append(x_2[i])
             y_n.append(y_2[i])
-        #else:
-         #   print ('no moving obstacles')
     print(x,y,x_n,y_n)
     return x,y,x_n,y_n
 
