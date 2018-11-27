@@ -124,48 +124,66 @@ def callback_mocap(odometry_msg):
                 control_request = lli_ctrl_request()
                 control_request.velocity = 25
 
-                if -(95*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
+                if -(90*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
+                    print("-90 to -70")
                     if ranges[i] < 0.2:
+                        print("-90 to -70 and range less than 0.2")
                         control_request.steering = (15*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
                 if -(70*math.pi/180) < angle_list[i] <= -(50*math.pi/180):
+                    print("-70 to -50")
                     if ranges[i] < 0.3:
+                        print("-70 to -50 and range less than 0.3")
                         control_request.steering = (25*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
                 if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
+                    print("-50 to -30")
                     if ranges[i] < 0.4:
+                        print("-50 to -30 and range less than 0.4")
                         control_request.steering = (35*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
                 if -(30*math.pi/180) < angle_list[i] <= -(10*math.pi/180):
+                    print("-30 to -10")
                     if ranges[i] < 0.5:
+                        print("-30 to -10 and range less than 0.5")
                         control_request.steering = (45*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
                 if -(10*math.pi/180) < angle_list[i] <= (10*math.pi/180):
+                    print("-10 to 10")
                     if ranges[i] < 0.6:
+                        print("-10 to 10 and range less than 0.6")
                         control_request.steering = -(55*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
                 if (10*math.pi/180) < angle_list[i] <= (30*math.pi/180):
+                    print("10 to 30")
                     if ranges[i] < 0.5:
+                        print("10 to 30 and range less than 0.5")
                         control_request.steering = -(45*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
                 if (30*math.pi/180) < angle_list[i] <= (50*math.pi/180):
+                    print("30 to 50")
                     if ranges[i] < 0.4:
+                        print("30 to 50 and range less than 0.4")
                         control_request.steering = -(35*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
                 if (50*math.pi/180) < angle_list[i] <= (70*math.pi/180):
+                    print("50 to 70")
                     if ranges[i] < 0.3:
+                        print("50 to 70 and range less than 0.3")
                         control_request.steering = -(25*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
-                if (70*math.pi/180) <= angle_list[i] <= (95*math.pi/180):
+                if (70*math.pi/180) <= angle_list[i] <= (90*math.pi/180):
+                    print("70 to 90")
                     if ranges[i] < 0.2:
+                        print("70 to 90 and range less than 0.2")
                         control_request.steering = -(15*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
