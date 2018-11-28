@@ -83,6 +83,37 @@ def dist_target(state, cx, cy):
     dist_tg = math.sqrt(dx **2 + dy **2)
     return dist_tg
 
+def two_obstables(ranges, angle_list):
+	for i1 in len(ranges):
+	for i2 in len(ranges):
+            if ranges[i1] < 0.6 and ranges[i2] < 0.6 and -(30*math.pi/180) <= angle_list[i1] <= 0 and 0 <= angle_list[i2] <= (30*math.pi/180):
+                a = ranges[i1]
+	        a1 = angle_list[i1]
+                b = ranges[i2]
+                b1 = angle_list[i2]
+
+                w = math.sqrt(math.pow(a,2)+math.pow(b,2)-2*a*b*math.cos(a1-b1))
+                w_c = 0.28 # width of car
+                    
+                if w > w_c:
+                    control_request = lli_ctrl_request()
+                    control_request.velocity = 25
+                    control_request.steering = 0
+                    ctrl_pub.publish(control_request)
+		else:
+		    a_min = min(a1, b1)
+	            if a_min <=0:
+                        control_request = lli_ctrl_request()
+			control_request.velocity = 25
+                        control_request.steering = 40*math.pi/180*100
+                    	ctrl_pub.publish(control_request)
+                            
+		    else:
+			control_request = lli_ctrl_request()
+			control_request.velocity = 25
+                        control_request.steering = -40*math.pi/180*100
+                    	ctrl_pub.publish(control_request)
+         print ("TWO OBSTACLES IN WAY")
 #######
 # ROS #
 #######
@@ -118,51 +149,25 @@ def callback_mocap(odometry_msg):
 
         if min_dist < 0.6 and dist_tg > d_min:
             angle_list = []
-            angle_list2 = []
             control_request = lli_ctrl_request()
             control_request.velocity = 25
             control_request.steering = 0
             ctrl_pub.publish(control_request)
-            w = 0 # width of open space between 2 obstacles
-            a = 0
-            b = 0
-            if min_dist < 0.05:
+          
+
+            if min_dist < 0.1:
                 control_request = lli_ctrl_request()
                 control_request.velocity = 0
                 control_request.steering = 0
                 ctrl_pub.publish(control_request)
-            #if min_dist < 0.2:
-             #   for i in range(len(ranges)):
-              #      angle2 = angle_min + i * increment # need to change instead og angle list because it will fill up
-               #     angle_list2.append(angle2)
-
+		print ("emergency stop!")
+           
             for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
                 angle = angle_min + i * increment
                 angle_list.append(angle)
-                #control_request = lli_ctrl_request()
-                #control_request.velocity = 25
 
-                if angle_list[i] ==(30*math.pi/180)
-                    a = range[i]
-                    a1 = angle_list[i]
-                if angle_list[i] == (30*math.pi/180):
-                    b = range[i]
-                    b1 = angle_list[i]
-
-                w = math.sqrt(math.pow(a,2)+math.pow(b,2)-2*a*b*math.cos(a1-b1))
-                w_c = 0.28 # width of car
-                    #if min_dist < 0.2 and :
-                if w > w_c:
-                    control_request = lli_ctrl_request()
-                    control_request.velocity = 25
-                    control_request.steering = 0
-                    ctrl_pub.publish(control_request)
-                #else:
-                 #   control_request = lli_ctrl_request()
-                  #  control_request.velocity = 25
-                   # control_request.steering = (35*math.pi/180)*100
-                    #ctrl_pub.publish(control_request)
-
+		two_obstacles(ranges, angle_list)
+                
                 if -(90*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
                     print("-90 to -70")
                     if ranges[i] < 0.2:
@@ -179,7 +184,7 @@ def callback_mocap(odometry_msg):
                         control_request = lli_ctrl_request()
                         control_request.velocity = 25
                         control_request.steering = (25*math.pi/180)*100
-                        ctrl_pub.publish(control_request)
+                        ctrl_pub.publish(control_request)\
 
                 if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
                     print("-50 to -30")
