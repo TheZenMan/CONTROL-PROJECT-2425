@@ -160,14 +160,6 @@ def callback_mocap(odometry_msg):
             control_request.steering = 0
             ctrl_pub.publish(control_request)
 
-
-            if min_dist < 0.1:
-                control_request = lli_ctrl_request()
-                control_request.velocity = 0
-                control_request.steering = 0
-                ctrl_pub.publish(control_request)
-		print ("emergency stop!")
-
             for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
                 angle = angle_min + i * increment
                 angle_list.append(angle)
@@ -254,6 +246,13 @@ def callback_mocap(odometry_msg):
                         control_request.velocity = 25
                         control_request.steering = -(15*math.pi/180)*100
                         ctrl_pub.publish(control_request)
+
+                if min_dist < 0.1:
+                    control_request = lli_ctrl_request()
+                    control_request.velocity = 0
+                    control_request.steering = 0
+                    ctrl_pub.publish(control_request)
+		    print ("emergency stop!")
 
                 #two_obstacles(ranges, angle_list)
 
