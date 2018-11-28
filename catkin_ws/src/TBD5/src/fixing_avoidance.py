@@ -142,12 +142,14 @@ def callback_mocap(odometry_msg):
                 #control_request = lli_ctrl_request()
                 #control_request.velocity = 25
 
-                if angle_list[i] == -(45*math.pi/180):
+                if angle_list[i] ==(30*math.pi/180)
                     a = range[i]
-                if angle_list[i] == (45*math.pi/180):
+                    a1 = angle_list[i]
+                if angle_list[i] == (30*math.pi/180):
                     b = range[i]
+                    b1 = angle_list[i]
 
-                w = math.sqrt(math.pow(a,2)+math.pow(b,2)-2*a*b*math.cos(60))
+                w = math.sqrt(math.pow(a,2)+math.pow(b,2)-2*a*b*math.cos(a1-b1))
                 w_c = 0.28 # width of car
                     #if min_dist < 0.2 and :
                 if w > w_c:

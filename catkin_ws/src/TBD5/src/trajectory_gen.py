@@ -141,7 +141,7 @@ class ShapeHandler:
         elif self.shape == self.ELLIPSE:
             cx, cy = self.gen_ellipse()
         elif self.shape == self.POINT:
-            cx, cy = self.gen_point(Point(-1,1,0))
+            cx, cy = self.gen_point(Point(1,1,0))
 
         else:
             print("######## WARNING: GIVEN SHAPE NOT HANDLED ########")
