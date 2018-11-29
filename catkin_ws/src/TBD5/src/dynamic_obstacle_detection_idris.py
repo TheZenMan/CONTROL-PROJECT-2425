@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import rospy
 import math
 import numpy as np
@@ -25,22 +27,39 @@ t=0
 
 def compare(x_1,y_1,d_1,x_2,y_2,d_2):
     walking = False
+    obstacle_counter=0
+    x_vel_list=[]
+    y_vel_list = []
     for i in range(len(x_1)):
-        if abs(x_1[i]-x_2[i]) > 0.1: #use x position diff
-            print ('walking person')
+        if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
+            #print ('walking person x')
+            #x.append(x_1[i])
+            x_currvel=(x_1[i]-x_2[i])/0.8
+            y_currvel =(y_1[i]-y_2[i])/0.8
+            x_vel_list.append(x_currvel)
+            y_vel_list.append(y_currvel)
+
+            #y.append(y_1[i])
+            #x_n.append(x_2[i])
+            #y_n.append(y_2[i])
+            #walking = True #return true if somone is moving
+            obstacle_counter = obstacle_counter + 1
+        #if abs(y_1[i]-y_2[i]) > 0.3: #use y position diff
+            #print ('walking person y')
+            #obstacle_counter=obstacle_counter+1
             #x.append(x_1[i])
             #y.append(y_1[i])
             #x_n.append(x_2[i])
             #y_n.append(y_2[i])
-            walking = True #return true if somone is moving
-        elif abs(y_1[i]-y_2[i]) > 0.1: #use y position diff
-            print ('walking person')
-            #x.append(x_1[i])
-            #y.append(y_1[i])
-            #x_n.append(x_2[i])
-            #y_n.append(y_2[i])
-            walking = True #return true if someone is moving
-    return walking
+            #walking = True #return true if someone is moving
+    x_velocity = 0
+    y_velocity = 0
+    if obstacle_counter>10:
+        walking = True
+        x_velocity = sum(x_vel_list)/len(x_vel_list)
+        y_veloctiy = sum(y_vel_list)/len(y_vel_list)
+        #print('walking person counter')
+    return walking, x_velocity, y_velocity
 
 
 def callback_mocap(odometry_msg):
@@ -86,17 +105,20 @@ def callback_mocap(odometry_msg):
             y1_list = y_list
             d1_list = d_list
 
-        if t%0.5 <0.1: #refresh x2, y2 and d2 every 0.5 seconds
+        if t%0.8 <0.1: #refresh x2, y2 and d2 every 0.5 seconds
             x2_list = x_list
             y2_list = y_list
             d2_list = d_list
-
+        #print(len(x2_list))
         if not len(x2_list) == 0:
-            walking = compare(x1_list, y1_list, d1_list, x2_list, y2_list, d2_list)
+            walking, x_velocity, y_velocity = compare(x1_list, y1_list, d1_list, x2_list, y2_list, d2_list)
             x1_list = x2_list  # Refresh lists so we always compare every 0.5 seconds
             y1_list = y2_list
             d1_list = d2_list
-            print(walking)
+            if walking ==True:
+                print('Something is moving')
+                print('x velocity',x_velocity)
+                print('y velocity', y_velocity)
 
 def callback_lidar(scan):
     global ranges
