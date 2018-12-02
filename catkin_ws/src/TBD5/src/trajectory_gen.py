@@ -24,7 +24,7 @@ class ShapeHandler:
     ELLIPSE = 3
     POINT = 4
 
-    def __init__(self, shape):
+    def __init__(self, shape):             # Inizialization of the ROS Node and publisher
 
         self.id = '/SVEA5'
         self.shape = self.str_to_shape(shape)
@@ -32,19 +32,19 @@ class ShapeHandler:
         self.traj_pub = rospy.Publisher('/nav_traj' + self.id, PoseArray, queue_size=1)
         self.last_time = rospy.get_time()
 
-    def str_to_shape(self, shape_name):
+    def str_to_shape(self, shape_name):    # Definition of the different trajectory's shapes
         if   shape_name == "LINE_SEGMENT": return self.LINE_SEGMENT
         elif shape_name == "SQUARE": return self.SQUARE
         elif shape_name == "CIRCLE": return self.CIRCLE
         elif shape_name == "ELLIPSE": return self.ELLIPSE
         elif shape_name == "POINT": return self.POINT
 
-    def load_traj_msg(self, traj_x, traj_y):
+    def load_traj_msg(self, traj_x, traj_y):  
 
         if not len(traj_x) == len(traj_y):
             raise ValueError("Trajectory not built correctly")
 
-        traj_pose_array = PoseArray()
+        traj_pose_array = PoseArray()      # Creation of a message with information on the chosen trajectory
         traj_pose_array.header.stamp = rospy.Time.now()
         traj_pose_array.header.frame_id = 'qualisys'
         for i in range(len(traj_x)):
@@ -54,7 +54,7 @@ class ShapeHandler:
             traj_pose_array.poses.append(pose)
         return traj_pose_array
 
-    def publish_path(self):
+    def publish_path(self):               # Publisher to publish trajectory information
         now = rospy.get_time()
 
         if now-self.last_time > 2:
@@ -92,6 +92,11 @@ class ShapeHandler:
         return cx, cy
 
     def gen_quad(self, corner0, corner1, corner2, corner3, laps=1):
+	"""
+        Generates square with edges corner0, corner1, corner2, corner3
+        corner0 (geometry_msgs/Point), corner1 (geometry_msgs/Point)
+	corner2 (geometry_msgs/Point), corner3 (geometry_msgs/Point)
+        """
 
         cx0, cy0 = self.gen_line_segment(corner0, corner1)
         cx1, cy1 = self.gen_line_segment(corner1, corner2)
@@ -110,24 +115,32 @@ class ShapeHandler:
         return cx, cy
 
     def gen_circle(self, center, radius):
+	"""
+        Generates circle centered in center and radius radius
+        center (geometry_msgs/Point), radius (geometry_msgs/Point)
+	"""
             angle_separation = self.WAYPOINT_SEPARATION / radius
             waypts = np.arange(0, 50* pi, angle_separation)
             cx = radius * np.cos(waypts)
             cy = radius * np.sin(waypts)
             return cx, cy
 
-    def gen_ellipse(self, center, radius0, radius1):
-        print("not implemented yet")
-        pass
+    #def gen_ellipse(self, center, radius0, radius1):
+     #  print("not implemented yet")
+     #  pass
 
     def gen_point(self, goal_point, laps=1000):
+	"""
+        Generates a straight line repetition of the same point goal_point
+        goal_point (geometry_msgs/Point)
+        """
         cx, cy = [],[]
         for i in range(laps):
             cx = np.append(cx,goal_point.x)
             cy = np.append(cy,goal_point.y)
         return cx, cy
 
-    def gen_traj(self):
+    def gen_traj(self):                    # Assign values to the previous functions to create specific trajectories
 
         if self.shape == self.LINE_SEGMENT:
             cx, cy = self.gen_line_segment(Point(-1, -1, 0), Point(1, 1, 0))
