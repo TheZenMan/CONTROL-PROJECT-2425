@@ -13,7 +13,7 @@ from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped
 
 rospy.init_node('obstacles_modeling') # Initiate a Node named 'obstacle_modeling'
-sub = rospy.Subscriber('dynamic_scan', LaserScan, callback_lidar) 
+obstacle_pub = rospy.Publisher('obstacles', LaserScan, queue_size=1)
 
 
 curr_scan = None
