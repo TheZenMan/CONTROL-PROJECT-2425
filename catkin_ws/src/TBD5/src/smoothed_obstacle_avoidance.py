@@ -102,7 +102,7 @@ def smooth_steering(curr_range, curr_angle):
 # ROS #
 #######
 
-rospy.init_node('pp_lidar_controller')
+rospy.init_node('smoothed_pp_lidar_controller')
 ctrl_pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_size=1)
 
