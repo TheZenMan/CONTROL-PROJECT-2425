@@ -12,8 +12,8 @@ rospy.init_node('people_detection')
 dynamic_scan_pub = rospy.Publisher('dynamic_scan', LaserScan, queue_size=1)
 
 curr_scan = None
-dynamic_lookahead = 1
-resolution = 0.5
+dynamic_lookahead = 1.5
+resolution = 1
 
 ranges=[]
 x_list=[]#
