@@ -31,6 +31,7 @@ t=0
 
 def compare(x_1,y_1,d_1,x_2,y_2,d_2):
     global curr_scan
+    global dynamic_indices
 
     walking = False
     obstacle_counter=0

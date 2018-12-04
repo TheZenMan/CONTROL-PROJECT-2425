@@ -16,10 +16,7 @@ from geometry_msgs.msg import PointStamped, PoseArray
 
 k = 0.4  # look forward gain
 Lfc = 0.4# look-ahead distance
-#Kp = 0.7  # speed propotional gain
-L = 0.32  # [m] wheel base of
-#vehicle change according to our car --> length of the car
-
+L = 0.32  # [m] wheel base of vehicle 
 target_speed = 35  # [PWM %]
 
 ####################
@@ -36,7 +33,7 @@ v = []
 # CLASS DEFINITIONS #
 #####################
 
-class State:
+class State:     
 
     def __init__(self, x, y, yaw, v):
         self.x = x
