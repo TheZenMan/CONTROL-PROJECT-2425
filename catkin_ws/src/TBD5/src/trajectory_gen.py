@@ -39,7 +39,7 @@ class ShapeHandler:
         elif shape_name == "ELLIPSE": return self.ELLIPSE
         elif shape_name == "POINT": return self.POINT
 
-    def load_traj_msg(self, traj_x, traj_y):  
+    def load_traj_msg(self, traj_x, traj_y):
 
         if not len(traj_x) == len(traj_y):
             raise ValueError("Trajectory not built correctly")
@@ -119,11 +119,11 @@ class ShapeHandler:
         Generates circle centered in center and radius radius
         center (geometry_msgs/Point), radius (geometry_msgs/Point)
 	"""
-            angle_separation = self.WAYPOINT_SEPARATION / radius
-            waypts = np.arange(0, 50* pi, angle_separation)
-            cx = radius * np.cos(waypts)
-            cy = radius * np.sin(waypts)
-            return cx, cy
+        angle_separation = self.WAYPOINT_SEPARATION / radius
+        waypts = np.arange(0, 50* pi, angle_separation)
+        cx = radius * np.cos(waypts)
+        cy = radius * np.sin(waypts)
+        return cx, cy
 
     #def gen_ellipse(self, center, radius0, radius1):
      #  print("not implemented yet")

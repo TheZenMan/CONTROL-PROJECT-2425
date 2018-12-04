@@ -89,14 +89,18 @@ def dist_target(state, cx, cy):
 
 def smooth_steering(curr_range, curr_angle):
     near_obs=0
+    y_steering=0
+    print('curr range',curr_range)
     curr_angle_abs=abs(curr_angle)
     y_range = -0.004751131*curr_angle_abs + 0.6423077 #linear
     #y_range = 0.6568566 - 0.005566087*curr_angle + 0.000007751462*curr_angle*curr_angle #quadratic
     if curr_range<y_range:
         near_obs=1
+        #print('inside range')
         y_steering = -0.4751131 * curr_angle_abs + 59.23077
         if curr_angle<0:
             y_steering=-y_steering
+   # print('y_steering', y_steering)
     return y_steering, near_obs
 #######
 # ROS #
