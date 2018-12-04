@@ -13,6 +13,7 @@ dynamic_scan_pub = rospy.Publisher('dynamic_scan', LaserScan, queue_size=1)
 
 curr_scan = None
 dynamic_lookahead = 1
+resolution = 0.5
 
 ranges=[]
 x_list=[]#
@@ -43,10 +44,10 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
 
         # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
         # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
-        if ((abs(x_1[i]-x_2[i]) > 0.1 and
-             abs(x_1[i]-x_2[i]) < 0.3)  or
-            (abs(y_1[i]-y_2[i]) > 0.1 and
-             abs(y_1[i]-y_2[i]) < 0.3)): #use y position diff
+        if ((abs(x_1[i]-x_2[i])/resolution > 0.1 and
+             abs(x_1[i]-x_2[i])/resolution < 0.3)  or
+            (abs(y_1[i]-y_2[i])/resolution > 0.1 and
+             abs(y_1[i]-y_2[i])/resolution < 0.3)): #use y position diff
             #print ('walking person x')
             #x.append(x_1[i])
             x_currvel=(x_1[i]-x_2[i])/0.8
