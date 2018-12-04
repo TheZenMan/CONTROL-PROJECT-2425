@@ -38,7 +38,7 @@ def points(dynamic_indices, x_list, y_list):
     global obstacle_list
 
     obstacle_list =[]
-    for i in range(len(dynamic_indices)):
+    for i in dynamic_indices:
         obs_x_list.append(x_list[i])
         obs_y_list.append(y_list[i])
     
