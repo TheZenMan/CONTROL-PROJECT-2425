@@ -1,0 +1,22 @@
+<launch>
+
+    <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+      <param name="port" value="/dev/ttyACM0"/>
+      <param name="baud" value="115200"/>
+    </node>
+
+    <include file="$(find qualisys)/launch/qualisys.launch"/>
+    <include file="$(find qualisys)/launch/qualisys_odom.launch">
+        <arg name="model" value="SVEA5"/>
+    </include>
+
+    <node pkg="TBD5" type="qualTBD5.py" name="qualTBD5" output="screen"></node>
+
+    <node pkg="TBD5" type="dynamic_obstacle_detection_idris.py" name="do_detection" output="screen"></node>
+    <node pkg="TBD5" type="dynamic_trajectory.py" name="dynamic_trajectory" output="screen"></node>
+    <node pkg="TBD5" type="obstacle_modelling.py" name="obstacle_modelling" output="screen"></node>
+
+    <include file="$(find urg_node)/launch/urg_lidar.launch"/>
+    <node pkg="lidar_mapping" type="main.py" name="occupancy_grid_handler" output="screen"></node>
+
+</launch>
