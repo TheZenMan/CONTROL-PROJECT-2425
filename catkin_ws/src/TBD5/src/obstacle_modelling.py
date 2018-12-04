@@ -20,16 +20,17 @@ x_obs_list = []
 y_obs_list = []
 x_list=[]
 y_list=[]
-p_x1 =0
-p_y1 =0
-p_x2 =0
-p_y2 =0
-p_x3 =0
-p_y3 =0
-p_x4 =0
-p_y4 =0
+
 
 def points(x_list, y_list):
+    p_x1 =0
+    p_y1 =0
+    p_x2 =0
+    p_y2 =0
+    p_x3 =0
+    p_y3 =0
+    p_x4 =0
+    p_y4 =0
 
     for i in range(len(x_list)):
         p_x1 = x_list[i]-0.22
