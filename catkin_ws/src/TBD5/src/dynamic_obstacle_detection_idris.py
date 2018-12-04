@@ -12,7 +12,7 @@ rospy.init_node('people_detection')
 dynamic_scan_pub = rospy.Publisher('dynamic_scan', LaserScan, queue_size=1)
 
 curr_scan = None
-dynamic_lookahead = 3.5
+dynamic_lookahead = 1
 
 ranges=[]
 x_list=[]#
@@ -36,9 +36,10 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
     obstacle_counter=0
     x_vel_list=[]
     y_vel_list = []
-
     dynamic_indices = []
+
     for i in range(len(x_1)):
+
         # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
         # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
         if ((abs(x_1[i]-x_2[i]) > 0.1 and
@@ -66,6 +67,7 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
             #x_n.append(x_2[i])
             #y_n.append(y_2[i])
             #walking = True #return true if someone is moving
+    print(dynamic_indices)
     x_velocity = 0
     y_velocity = 0
     if obstacle_counter>10:
@@ -116,6 +118,7 @@ def callback_mocap(odometry_msg):
     global x2_list
     global y2_list
     global d2_list
+    global o_distance_list
 
     # if not len(ranges) == 0:
     if not curr_scan is None:
@@ -129,6 +132,7 @@ def callback_mocap(odometry_msg):
         x2_list = []
         y2_list = []
         d2_list = []
+        o_distance_list =[]
         for i in range(len(curr_scan.ranges)):
             o_distance = curr_scan.ranges[i] # ranges distance
             o_angle = curr_scan.angle_min + i * curr_scan.angle_increment + robot_yaw #angle to object (check if this works)
@@ -137,6 +141,7 @@ def callback_mocap(odometry_msg):
             x_g = x_o + x_pos #global coordinates of object
             y_g = y_o +y_pos
             d = math.sqrt(math.pow(x_g, 2) + math.pow(y_g, 2)) #distance to object in global frame
+            o_distance_list.append(o_distance)
             x_list.append(x_g)
             y_list.append(y_g)
             d_list.append(d)
