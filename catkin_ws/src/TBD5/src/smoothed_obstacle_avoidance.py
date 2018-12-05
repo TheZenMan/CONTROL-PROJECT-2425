@@ -35,7 +35,26 @@ v = []
 #####################
 # CLASS DEFINITIONS #
 #####################
-
+#################
+#VISUALIZATION
+###############
+#x = np.linspace(-np.pi, np.pi, 720)
+#y = np.random.random_integers(1,100,720)
+#plt.ion()
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
+#line1, = ax.plot(x,y,'r-')
+#plt.xlabel('angles')
+#plt.ylabel('ranges')
+#counter=0
+#while counter<1000:
+#    line1.set_ydata(np.random.random_integers(1,100,720))
+#    fig.canvas.draw()
+#    counter=counter+1
+#def update_hist(num, data):
+#    plt.cla()
+#    plt.hist(data[num])
+#fig = plt.figure()
 class State:
 
     def __init__(self, x, y, yaw, v):
@@ -76,8 +95,8 @@ def calc_target_index(state, cx, cy):
         ind = 1
     else:
         ind = len(cx)+1
-    print (ind)
-    print (Ln)
+    print ind
+    print Ln
     return ind
 
 def dist_target(state, cx, cy):
@@ -106,7 +125,7 @@ def smooth_steering(curr_range, curr_angle):
 # ROS #
 #######
 
-rospy.init_node('smoothed_pp_lidar_controller')
+rospy.init_node('pp_lidar_controller')
 ctrl_pub= rospy.Publisher('/lli/ctrl_request',lli_ctrl_request,queue_size=1)
 target_pub = rospy.Publisher('pure_pursuit_target_pose', PointStamped, queue_size=1)
 
@@ -141,15 +160,101 @@ def callback_mocap(odometry_msg):
             for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
                 angle = angle_min + i * increment
                 angle_list.append(angle)
-                #animation=animation.FuncAnimation(fig,update_hist, 720, fargs =(angles_list,))
-                #plt.show()
+
                 control_request = lli_ctrl_request()
                 control_request.velocity = 25
 
-                y_steering, near_obs = smooth_steering(ranges[i], angle_list[i])
-                if near_obs==1:
-                    control_request.steering = (y_steering * math.pi / 180) * 100
-                    ctrl_pub.publish(control_request)
+            # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car uses [rad] then mutliply by 100 because the car takes in percentage to steer
+                if -(95*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
+                    if ranges[i] < 0.2:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #elif 0.2 < ranges[i] < 0.4:
+                 #    control_request.steering = 0
+            #else:
+             #   control_request.steering = target_angle
+
+                if -(70*math.pi/180) < angle_list[i] <= -(50*math.pi/180):
+                    if ranges[i] < 0.3:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+             #   control_request.steering = target_angle
+
+                if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
+                    if ranges[i] < 0.4:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target _angle
+
+                if -(30*math.pi/180) < angle_list[i] <= -(10*math.pi/180):
+                    if ranges[i] < 0.5:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #    control_request.steering = -(15*math.py/180)*100
+
+                if -(10*math.pi/180) < angle_list[i] <= (10*math.pi/180):
+                    if ranges[i] < 0.6:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target_angle
+
+                if (10*math.pi/180) < angle_list[i] <= (30*math.pi/180):
+                    if ranges[i] < 0.5:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target_angle
+
+                if (30*math.pi/180) < angle_list[i] <= (50*math.pi/180):
+                    if ranges[i] < 0.4:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target_angle
+
+                if (50*math.pi/180) < angle_list[i] <= (70*math.pi/180):
+                    if ranges[i] < 0.3:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+            #else:
+            #   control_request.steering = target _angle
+
+                if (70*math.pi/180) <= angle_list[i] <= (95*math.pi/180):
+                    if ranges[i] < 0.2:
+                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        if angle_list[i]<0:
+                            y_steering=-y_steering
+                        control_request.steering = (y_steering*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
+
         else:
             if ind < len(traj_x)-1:
                 print('Running Trajectory')
