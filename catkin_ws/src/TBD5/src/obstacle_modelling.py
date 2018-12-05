@@ -7,10 +7,10 @@ import numpy as np
 from math import pi, sin, cos, sqrt, atan2, radians, degrees
 
 from geometry_msgs.msg import Point
-from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped
+from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped, Polygon
 
 rospy.init_node('obstacles_modeling') # Initiate a Node named 'obstacle_modeling'
-#obstacle_pub = rospy.Publisher('obstacles', LaserScan, queue_size=1)
+obstacle_pub = rospy.Publisher('obstacles', Polygon, queue_size=1)
 
 x_obs_list = []
 y_obs_list = []
@@ -28,6 +28,7 @@ def points(x_list, y_list):
     p_x4 =0
     p_y4 =0
 
+
     for i in range(len(x_list)):
         p_x1 = x_list[i]-0.22
 	p_y1 = y_list[i]+0.47
@@ -37,25 +38,10 @@ def points(x_list, y_list):
 	p_y3 = y_list[i]-0.47
 	p_x4 = x_list[i]-0.22
 	p_y4 = y_list[i]-0.47
+      
+     
     return p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4
 
-def obstacle (pts):
-
-	hull = ConvexHull(pts)
-
-	fig = plt.figure()
-	ax = fig.add_subplot(111, projection="3d")
-
-	# Plot defining corner points
-	ax.plot(pts.T[0], pts.T[1], pts.T[2], "ko")
-
-	# 12 = 2 * 6 faces are the simplices (2 simplices per square face)
-	for s in hull.simplices:
-    	    s = np.append(s, s[0])  # Here we cycle back to the first coordinate
-    	    ax.plot(pts[s, 0], pts[s, 1], pts[s, 2], "r-")
-
-
-	plt.show()
 
 
 def callback_dyn(dyn_msg):
@@ -66,13 +52,22 @@ def callback_dyn(dyn_msg):
 	dyn_msg.poses.position.y = y_obs
 	x_obs_list.append(x_obs)
 	y_obs_list.append(y_obs)
+	obstacles = Polygon()
+        dynamic_traj.header.stamp = rospy.Time.now()
+        dynamic_traj.header.frame_id ='qualisys'
+        
+	p_x1, p_y1 p_x2, p_x3, p_x4 = points(x_obs_list, y_obs_list)
 
-p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4 = points(x_obs_list, y_obs_list)
-
-pts = np.array([[p_x1, p_y1, 0], [p_x2, p_y2, 0], [p_x3, p_y3, 0], [p_x4, p_y4, 0],
+	pts = np.array([[p_x1, p_y1, 0], [p_x2, p_y2, 0], [p_x3, p_y3, 0], [p_x4, p_y4, 0],
                 [p_x1, p_y1, 1], [p_x2, p_y2, 1], [p_x3, p_y3, 1], [p_x4, p_y4, 1]])
 
-obstacle(pts)
+	for i in range(len(x_obs_list):
+	    	polygon = Polygon()
+	    	polygon = pts
+	    	
+	    	dynamic_traj.poses.append(pose)
+	dynamic_traj_pub.publish(dynamic_traj)
+
 
 def main():
     dynamic_sub = rospy.Subscriber('dynamic_traj', PoseArray, callback_dyn)
