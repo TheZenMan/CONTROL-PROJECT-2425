@@ -167,7 +167,7 @@ def callback_mocap(odometry_msg):
             # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car uses [rad] then mutliply by 100 because the car takes in percentage to steer
                 if -(95*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
                     if ranges[i] < 0.2:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -179,7 +179,7 @@ def callback_mocap(odometry_msg):
 
                 if -(70*math.pi/180) < angle_list[i] <= -(50*math.pi/180):
                     if ranges[i] < 0.3:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -189,7 +189,7 @@ def callback_mocap(odometry_msg):
 
                 if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
                     if ranges[i] < 0.4:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -199,7 +199,7 @@ def callback_mocap(odometry_msg):
 
                 if -(30*math.pi/180) < angle_list[i] <= -(10*math.pi/180):
                     if ranges[i] < 0.5:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -209,7 +209,7 @@ def callback_mocap(odometry_msg):
 
                 if -(10*math.pi/180) < angle_list[i] <= (10*math.pi/180):
                     if ranges[i] < 0.6:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -219,7 +219,7 @@ def callback_mocap(odometry_msg):
 
                 if (10*math.pi/180) < angle_list[i] <= (30*math.pi/180):
                     if ranges[i] < 0.5:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -229,7 +229,7 @@ def callback_mocap(odometry_msg):
 
                 if (30*math.pi/180) < angle_list[i] <= (50*math.pi/180):
                     if ranges[i] < 0.4:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -239,7 +239,7 @@ def callback_mocap(odometry_msg):
 
                 if (50*math.pi/180) < angle_list[i] <= (70*math.pi/180):
                     if ranges[i] < 0.3:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
@@ -249,7 +249,7 @@ def callback_mocap(odometry_msg):
 
                 if (70*math.pi/180) <= angle_list[i] <= (95*math.pi/180):
                     if ranges[i] < 0.2:
-                        y_steering = -0.4751131 * angle_list[i] + 59.23077
+                        y_steering = 0.4751131 * angle_list[i] - 59.23077
                         if angle_list[i]<0:
                             y_steering=-y_steering
                         control_request.steering = (y_steering*math.pi/180)*100
