@@ -135,9 +135,9 @@ def callback_mocap(odometry_msg):
         min_dist = min(ranges)
 
         dist_tg = dist_target(state_m, traj_x, traj_y)
-
         if min_dist < 0.6 and dist_tg > d_min:
             angle_list = []
+            y_steering=0
             for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
                 angle = angle_min + i * increment
                 angle_list.append(angle)
@@ -145,11 +145,11 @@ def callback_mocap(odometry_msg):
                 #plt.show()
                 control_request = lli_ctrl_request()
                 control_request.velocity = 25
-
+                print('y_steeringt',y_steering)
                 y_steering, near_obs = smooth_steering(ranges[i], angle_list[i])
                 if near_obs==1:
                     control_request.steering = (y_steering * math.pi / 180) * 100
-                    ctrl_pub.publish(control_request)
+                ctrl_pub.publish(control_request)
         else:
             if ind < len(traj_x)-1:
                 print('Running Trajectory')

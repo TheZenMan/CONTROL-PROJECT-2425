@@ -5,10 +5,6 @@ import os
 import rospy
 import numpy as np
 from math import pi, sin, cos, sqrt, atan2, radians, degrees
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from scipy import spatial
-spatial.ConvexHull
 
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped
