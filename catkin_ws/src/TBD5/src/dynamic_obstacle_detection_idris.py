@@ -99,7 +99,11 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
 
         # dynamic_scan = LaserScan()
         dynamic_scan.ranges = tuple(dynamic_ranges_list)
-        dynamic_scan_pub.publish(dynamic_scan)
+        #dynamic_scan_pub.publish(dynamic_scan)
+        #rate = rospy.Rate(10)
+        #while not rospy.is_shutdown():
+        #    dynamic_scan_pub.publish(dynamic_scan)
+        #    rate.sleep()
 
     return walking, x_velocity, y_velocity
 
@@ -188,7 +192,11 @@ def callback_lidar(scan):
 def main():
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
     lidar_sub = rospy.Subscriber('/scan', LaserScan, callback_lidar)
-    rospy.spin()
+    #rospy.spin()
+    rate = rospy.Rate(10)
+    while not rospy.is_shutdown():
+        dynamic_scan_pub.publish(dynamic_scan)
+        rate.sleep()
 
 if __name__ == '__main__':
     main()
