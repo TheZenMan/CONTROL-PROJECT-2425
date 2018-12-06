@@ -28,11 +28,15 @@ x2_list=[]# second time step comparison lists
 y2_list=[]
 d2_list=[]
 
+dynamic_scan2=[]
+
+
 t=0
 
 def compare(x_1,y_1,d_1,x_2,y_2,d_2):
     global curr_scan
     global dynamic_indices
+    global dynamic_scan2
 
     walking = False
     obstacle_counter=0
@@ -44,10 +48,10 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
 
         # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
         # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
-        if ((abs(x_1[i]-x_2[i])/resolution > 0.1 and
-             abs(x_1[i]-x_2[i])/resolution < 0.3)  or
-            (abs(y_1[i]-y_2[i])/resolution > 0.1 and
-             abs(y_1[i]-y_2[i])/resolution < 0.3)): #use y position diff
+        if ((abs(x_1[i]-x_2[i])/resolution > 0.01 and
+             abs(x_1[i]-x_2[i])/resolution < 0.03)  or
+            (abs(y_1[i]-y_2[i])/resolution > 0.01 and
+             abs(y_1[i]-y_2[i])/resolution < 0.03)): #use y position diff
             #print ('walking person x')
             #x.append(x_1[i])
             x_currvel=(x_1[i]-x_2[i])/0.8
@@ -99,11 +103,14 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
 
         # dynamic_scan = LaserScan()
         dynamic_scan.ranges = tuple(dynamic_ranges_list)
-        #dynamic_scan_pub.publish(dynamic_scan)
+        dynamic_scan_pub.publish(dynamic_scan)
+    #    dynamic_scan2 = dynamic_scan.ranges
         #rate = rospy.Rate(10)
         #while not rospy.is_shutdown():
         #    dynamic_scan_pub.publish(dynamic_scan)
         #    rate.sleep()
+    #if walking==False:
+    #    dynamic_scan_pub.publish(dynamic_scan2)
 
     return walking, x_velocity, y_velocity
 
@@ -152,12 +159,12 @@ def callback_mocap(odometry_msg):
             y_list.append(y_g)
             d_list.append(d)
 
-        if t<0.05: #want first lists near start of time
+        if t<0.005: #want first lists near start of time
             x1_list = x_list  # first comparison lists
             y1_list = y_list
             d1_list = d_list
 
-        if t%0.1 < 0.01: #refresh x2, y2 and d2 every 0.5 seconds
+        if t%0.01 < 0.001: #refresh x2, y2 and d2 every 0.5 seconds
             x2_list = x_list
             y2_list = y_list
             d2_list = d_list
@@ -192,11 +199,11 @@ def callback_lidar(scan):
 def main():
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
     lidar_sub = rospy.Subscriber('/scan', LaserScan, callback_lidar)
-    #rospy.spin()
-    rate = rospy.Rate(10)
-    while not rospy.is_shutdown():
-        dynamic_scan_pub.publish(dynamic_scan)
-        rate.sleep()
+    rospy.spin()
+    #rate = rospy.Rate(10)
+    #while not rospy.is_shutdown():
+    #    dynamic_scan_pub.publish(dynamic_scan)
+    #    rate.sleep()
 
 if __name__ == '__main__':
     main()

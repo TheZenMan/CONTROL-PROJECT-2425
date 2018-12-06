@@ -7,10 +7,10 @@ import numpy as np
 from math import pi, sin, cos, sqrt, atan2, radians, degrees
 
 from geometry_msgs.msg import Point
-from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped, Polygon
+from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped, PolygonStamped, Point32
 
 rospy.init_node('obstacles_modeling') # Initiate a Node named 'obstacle_modeling'
-obstacle_pub = rospy.Publisher('obstacles', Polygon, queue_size=1)
+obstacle_pub = rospy.Publisher('obs_model_dyn', PolygonStamped, queue_size=1)
 
 x_obs_list = []
 y_obs_list = []
@@ -38,8 +38,8 @@ def points(x_list, y_list):
 	p_y3 = y_list[i]-0.47
 	p_x4 = x_list[i]-0.22
 	p_y4 = y_list[i]-0.47
-      
-     
+
+
     return p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4
 
 
@@ -47,31 +47,36 @@ def points(x_list, y_list):
 def callback_dyn(dyn_msg):
 	global x_obs_list
 	global y_obs_list
+        global x_obs
+        global y_obs
+        x_obs_list=[]
+        y_obs_list=[]
+	position_poses = dyn_msg.poses
+        for dyn_pt in position_poses:
+            x_obs_list.append(dyn_pt.position.x)
+            y_obs_list.append(dyn_pt.position.y)
 
-	dyn_msg.poses.position.x = x_obs
-	dyn_msg.poses.position.y = y_obs
-	x_obs_list.append(x_obs)
-	y_obs_list.append(y_obs)
-	obstacles = Polygon()
-        dynamic_traj.header.stamp = rospy.Time.now()
-        dynamic_traj.header.frame_id ='qualisys'
-        
-	p_x1, p_y1 p_x2, p_x3, p_x4 = points(x_obs_list, y_obs_list)
 
-	
-	for i in range(len(x_obs_list):
-	    	obstacle = Polygon()
-	    	obstacle.polygon.points = [Point32(x= p_x1, y= p_y1, z= 0),
+	p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4 = points(x_obs_list, y_obs_list)
+
+        obs_model_dyn = PolygonStamped()
+        obs_model_dyn.header.stamp = rospy.Time.now()
+        obs_model_dyn.header.frame_id ='qualisys'
+
+	for i in range(len(x_obs_list)):
+            obs_model_dyn.polygon.points = [Point32(x= p_x1, y= p_y1, z= 0),
 					   Point32(x= p_x2, y= p_y2, z= 0),
 					   Point32(x= p_x3, y= p_y3, z= 0),
 					   Point32(x= p_x4, y= p_y4, z= 0),
+                                           Point32(x= p_x1, y= p_y1, z= 0),
 					   Point32(x= p_x1, y= p_y1, z= 1),
-					   Point32(x= p_x2, y= p_y2, z= 1),
+                                           Point32(x= p_x2, y= p_y2, z= 1),
 			     		   Point32(x= p_x3, y= p_y3, z= 1),
-				           Point32(x= p_x4, y= p_y4, z= 1)]
-	    	
-	    	
-	obstacle_pub.publish(obstacle)
+				           Point32(x= p_x4, y= p_y4, z= 1),
+                                           Point32(x= p_x1, y= p_y1, z= 1)]
+
+
+	obstacle_pub.publish(obs_model_dyn)
 
 
 def main():
