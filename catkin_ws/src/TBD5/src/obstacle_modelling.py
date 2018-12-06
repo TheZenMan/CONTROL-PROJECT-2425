@@ -58,15 +58,20 @@ def callback_dyn(dyn_msg):
         
 	p_x1, p_y1 p_x2, p_x3, p_x4 = points(x_obs_list, y_obs_list)
 
-	pts = np.array([[p_x1, p_y1, 0], [p_x2, p_y2, 0], [p_x3, p_y3, 0], [p_x4, p_y4, 0],
-                [p_x1, p_y1, 1], [p_x2, p_y2, 1], [p_x3, p_y3, 1], [p_x4, p_y4, 1]])
-
+	
 	for i in range(len(x_obs_list):
-	    	polygon = Polygon()
-	    	polygon = pts
+	    	obstacle = Polygon()
+	    	obstacle.polygon.points = [Point32(x= p_x1, y= p_y1, z= 0),
+					   Point32(x= p_x2, y= p_y2, z= 0),
+					   Point32(x= p_x3, y= p_y3, z= 0),
+					   Point32(x= p_x4, y= p_y4, z= 0),
+					   Point32(x= p_x1, y= p_y1, z= 1),
+					   Point32(x= p_x2, y= p_y2, z= 1),
+			     		   Point32(x= p_x3, y= p_y3, z= 1),
+				           Point32(x= p_x4, y= p_y4, z= 1)]
 	    	
-	    	dynamic_traj.poses.append(pose)
-	dynamic_traj_pub.publish(dynamic_traj)
+	    	
+	obstacle_pub.publish(obstacle)
 
 
 def main():
