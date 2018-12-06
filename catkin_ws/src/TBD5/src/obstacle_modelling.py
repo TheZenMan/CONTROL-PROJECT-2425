@@ -30,14 +30,14 @@ def points(x_list, y_list):
 
 
     for i in range(len(x_list)):
-        p_x1 = x_list[i]-0.22
-	p_y1 = y_list[i]+0.47
-	p_x2 = x_list[i]+0.22
-	p_y2 = y_list[i]+0.47
-	p_x3 = x_list[i]+0.22
-	p_y3 = y_list[i]-0.47
-	p_x4 = x_list[i]-0.22
-	p_y4 = y_list[i]-0.47
+        p_y1 = y_list[i]-0.22
+	p_x1 = x_list[i]+0.47
+	p_y2 = y_list[i]+0.22
+	p_x2 = x_list[i]+0.47
+	p_y3 = y_list[i]+0.22
+	p_x3 = x_list[i]-0.47
+	p_y4 = y_list[i]-0.22
+	p_x4 = x_list[i]-0.47
 
 
     return p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4
@@ -69,11 +69,17 @@ def callback_dyn(dyn_msg):
 					   Point32(x= p_x3, y= p_y3, z= 0),
 					   Point32(x= p_x4, y= p_y4, z= 0),
                                            Point32(x= p_x1, y= p_y1, z= 0),
-					   Point32(x= p_x1, y= p_y1, z= 1),
-                                           Point32(x= p_x2, y= p_y2, z= 1),
-			     		   Point32(x= p_x3, y= p_y3, z= 1),
-				           Point32(x= p_x4, y= p_y4, z= 1),
-                                           Point32(x= p_x1, y= p_y1, z= 1)]
+					   Point32(x= p_x1, y= p_y1, z= 0.5),
+                                           Point32(x= p_x2, y= p_y2, z= 0.5),
+                                           Point32(x= p_x2, y= p_y2, z= 0),
+                                           Point32(x= p_x2, y= p_y2, z= 0.5),
+                                           Point32(x= p_x3, y= p_y3, z= 0.5),
+			     		   Point32(x= p_x3, y= p_y3, z= 0),
+                                           Point32(x= p_x3, y= p_y3, z= 0.5),
+                                           Point32(x= p_x4, y= p_y4, z= 0.5),
+                                           Point32(x= p_x4, y= p_y4, z= 0),
+				           Point32(x= p_x4, y= p_y4, z= 0.5),
+                                           Point32(x= p_x1, y= p_y1, z= 0.5)]
 
 
 	obstacle_pub.publish(obs_model_dyn)
