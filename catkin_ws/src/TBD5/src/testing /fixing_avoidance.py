@@ -255,8 +255,8 @@ def callback_mocap(odometry_msg):
                         control_request.steering = -(15*math.pi/180)*100
                         ctrl_pub.publish(control_request)
 
-        elif ranges[i] < 0.15:
-            while ranges[i] < 0.2:
+        elif min_dist < 0.15:
+            while min_dist < 0.2:
                 control_request = lli_ctrl_request()
                 control_request.velocity = 0
                 control_request.steering = 0
@@ -290,6 +290,14 @@ def callback_mocap(odometry_msg):
                 control_request.steering = target_angle
 
                 ctrl_pub.publish(control_request)
+
+            elif min_dist < 0.15:
+                while min_dist < 0.2:
+                    control_request = lli_ctrl_request()
+                    control_request.velocity = 0
+                    control_request.steering = 0
+                    ctrl_pub.publish(control_request)
+                    print ("emergency stop!")
 
             else:
                 print("### DONE WITH TRAJECTORY")
