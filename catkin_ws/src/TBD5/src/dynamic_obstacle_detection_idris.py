@@ -12,15 +12,15 @@ rospy.init_node('people_detection')
 dynamic_scan_pub = rospy.Publisher('dynamic_scan', LaserScan, queue_size=1)
 
 curr_scan = None
-dynamic_lookahead = 1.5
-resolution = 1
+dynamic_lookahead = 1.5   #range for detecting obstacles
+resolution = 1   #to perform space discretization
 
 ranges=[]
-x_list=[]#
+x_list=[]
 y_list=[]
 d_list=[]
 
-x1_list=[]#first compariosn lists
+x1_list=[]#first comparison lists
 y1_list=[]
 d1_list=[]
 
@@ -34,6 +34,11 @@ dynamic_scan2=[]
 t=0
 
 def compare(x_1,y_1,d_1,x_2,y_2,d_2):
+    """
+    Compares two subsequential lidar scan to understand if the obstacles
+    detected have moved and creates a new LaserScan message containing information
+    on the detected obstacles.
+    """
     global curr_scan
     global dynamic_indices
     global dynamic_scan2
@@ -46,45 +51,29 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
 
     for i in range(len(x_1)):
 
-        # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
-        # if abs(d_1[i]-d_2[i]) > 0.2: #use x position diff
         if ((abs(x_1[i]-x_2[i])/resolution > 0.01 and
              abs(x_1[i]-x_2[i])/resolution < 0.03)  or
             (abs(y_1[i]-y_2[i])/resolution > 0.01 and
-             abs(y_1[i]-y_2[i])/resolution < 0.03)): #use y position diff
-            #print ('walking person x')
-            #x.append(x_1[i])
+             abs(y_1[i]-y_2[i])/resolution < 0.03)): #comparison between two differen positions
+        
             x_currvel=(x_1[i]-x_2[i])/0.8
             y_currvel =(y_1[i]-y_2[i])/0.8
             x_vel_list.append(x_currvel)
             y_vel_list.append(y_currvel)
 
-            #y.append(y_1[i])
-            #x_n.append(x_2[i])
-            #y_n.append(y_2[i])
-            #walking = True #return true if somone is moving
-            obstacle_counter = obstacle_counter + 1
-            dynamic_indices.append(i)
-        #if abs(y_1[i]-y_2[i]) > 0.3: #use y position diff
-            #print ('walking person y')
-            #obstacle_counter=obstacle_counter+1
-            #x.append(x_1[i])
-            #y.append(y_1[i])
-            #x_n.append(x_2[i])
-            #y_n.append(y_2[i])
-            #walking = True #return true if someone is moving
-    print(dynamic_indices)
+            obstacle_counter = obstacle_counter + 1   #obstacle counter
+            dynamic_indices.append(i)    #list that contains all the indeces that correspond to moving obstacles
+      
+    print(dynamic_indices) 
+ 
     x_velocity = 0
     y_velocity = 0
     if obstacle_counter>10:
         walking = True
         x_velocity = sum(x_vel_list)/len(x_vel_list)
         y_veloctiy = sum(y_vel_list)/len(y_vel_list)
-        #print('walking person counter')
-
-        # publish moving obstacles
-        # dynamic_scan = curr_scan
-        dynamic_scan = LaserScan()
+        
+        dynamic_scan = LaserScan()    #if more than 10 obstacles are identified, a new laserscan message is created
         dynamic_scan.header.stamp = rospy.Time.now()
         dynamic_scan.header.frame_id = "SVEA5"
         dynamic_scan.angle_min = curr_scan.angle_min
@@ -93,29 +82,21 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
         dynamic_scan.scan_time = curr_scan.scan_time
         dynamic_scan.range_min = curr_scan.range_min
         dynamic_scan.range_max = curr_scan.range_max
-        # dynamic_ranges_list = list(dynamic_scan.ranges)
         dynamic_ranges_list = list(curr_scan.ranges)
-        for i in range(len(curr_scan.ranges)):
-            if not i in dynamic_indices or curr_scan.ranges[i] > dynamic_lookahead:
-            # if i in dynamic_indices:
-                dynamic_ranges_list[i] = float("inf")
-                # dynamic_ranges_list.append(curr_scan.ranges[i])
 
-        # dynamic_scan = LaserScan()
+        for i in range(len(curr_scan.ranges)):
+            if not i in dynamic_indices or curr_scan.ranges[i] > dynamic_lookahead:  #distances of elements that are not recognized as moving obstacles are set to infinite
+                dynamic_ranges_list[i] = float("inf")
+               
+       
         dynamic_scan.ranges = tuple(dynamic_ranges_list)
         dynamic_scan_pub.publish(dynamic_scan)
-    #    dynamic_scan2 = dynamic_scan.ranges
-        #rate = rospy.Rate(10)
-        #while not rospy.is_shutdown():
-        #    dynamic_scan_pub.publish(dynamic_scan)
-        #    rate.sleep()
-    #if walking==False:
-    #    dynamic_scan_pub.publish(dynamic_scan2)
+ 
 
     return walking, x_velocity, y_velocity
 
 
-def callback_mocap(odometry_msg):
+def callback_mocap(odometry_msg):  #takes information from the mocap system
     global curr_scan
 
     global ranges
@@ -133,7 +114,7 @@ def callback_mocap(odometry_msg):
     global d2_list
     global o_distance_list
 
-    # if not len(ranges) == 0:
+    
     if not curr_scan is None:
         x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
@@ -146,6 +127,7 @@ def callback_mocap(odometry_msg):
         y2_list = []
         d2_list = []
         o_distance_list =[]
+
         for i in range(len(curr_scan.ranges)):
             o_distance = curr_scan.ranges[i] # ranges distance
             o_angle = curr_scan.angle_min + i * curr_scan.angle_increment + robot_yaw #angle to object (check if this works)
@@ -168,7 +150,7 @@ def callback_mocap(odometry_msg):
             x2_list = x_list
             y2_list = y_list
             d2_list = d_list
-        #print(len(x2_list))
+       
         if not len(x2_list) == 0:
             walking, x_velocity, y_velocity = compare(x1_list, y1_list, d1_list, x2_list, y2_list, d2_list)
             x1_list = x2_list  # Refresh lists so we always compare every 0.5 seconds
@@ -180,16 +162,10 @@ def callback_mocap(odometry_msg):
                 print('y velocity', y_velocity)
 
 def callback_lidar(scan):
-    # global ranges
-    # global angle_min
-    # global increment
+  
     global t
     global curr_scan
-    # global scan_time
-
-    # ranges = scan.ranges
-    # angle_min = scan.angle_min
-    # increment = scan.angle_increment
+ 
     scan_time = scan.scan_time
     t += scan_time
 
@@ -200,10 +176,6 @@ def main():
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
     lidar_sub = rospy.Subscriber('/scan', LaserScan, callback_lidar)
     rospy.spin()
-    #rate = rospy.Rate(10)
-    #while not rospy.is_shutdown():
-    #    dynamic_scan_pub.publish(dynamic_scan)
-    #    rate.sleep()
-
+ 
 if __name__ == '__main__':
     main()

@@ -19,7 +19,8 @@ x_list=[]
 y_list=[]
 t=0
 ranges=[]
-def callback_mocap(odometry_msg):
+
+def callback_mocap(odometry_msg):  #information from the Mocap
     global curr_scan
     global t
 
@@ -31,12 +32,11 @@ def callback_mocap(odometry_msg):
    	y_list = []
 
 
-    	#x2_list = []
-    	#y2_list = []
+ 
     	for i in range(len(curr_scan.ranges)):
             if not curr_scan.ranges[i] == float("inf"):
 	        o_distance = curr_scan.ranges[i] #ranges distance
-	        o_angle = curr_scan.angle_min + i * curr_scan.angle_increment +     robot_yaw #angle to object
+	        o_angle = curr_scan.angle_min + i * curr_scan.angle_increment + robot_yaw #angle to object
 	        x_o = np.cos(o_angle) * o_distance #body coordinates of object
                 y_o = np.sin(o_angle) * o_distance
                 x_g = x_o + x_pos #global coordinates of object
@@ -46,19 +46,20 @@ def callback_mocap(odometry_msg):
                 y_list.append(y_g)
 
         if not len(x_list)==0:
-	    x_pos,y_pos = averagenum(x_list,y_list)
-            x_traj.append(x_pos)
-	    y_traj.append(y_pos)
+	    x_pos,y_pos = averagenum(x_list,y_list)  #average of the obstacles positions
+            x_traj.append(x_pos)   #creation of a trajectory on x with the average of the x position of the obstacle
+	    y_traj.append(y_pos)   #creation of a trajectory on y with the average of the x position of the obstacle
+
 	dynamic_traj = PoseArray()
         dynamic_traj.header.stamp = rospy.Time.now()
         dynamic_traj.header.frame_id ='qualisys'
+
 	for i in range(len(x_traj)):
 	    pose = Pose()
 	    pose.position.x = x_traj[i]
 	    pose.position.y = y_traj[i]
 	    dynamic_traj.poses.append(pose)
-	dynamic_traj_pub.publish(dynamic_traj)
-
+	dynamic_traj_pub.publish(dynamic_traj)  #publisher to publish the information of the trajectories created
 
 
 def averagenum (x_1,y_1): #compute the average value of the position
@@ -75,21 +76,13 @@ def averagenum (x_1,y_1): #compute the average value of the position
     return average_x, average_y
 
 
-
-
-
-
-
-def callback_lidar(scan):
+def callback_lidar(scan):  #take information from the lidar
     global t
     global curr_scan
 
     scan_time = scan.scan_time
     t += scan_time
     curr_scan = scan
-
-
-
 
 
 def main():

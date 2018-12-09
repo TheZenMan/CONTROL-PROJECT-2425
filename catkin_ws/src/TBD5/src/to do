@@ -1,0 +1,19 @@
+1. avoidance COMMENTED --> same comments on controller_with_avoidance2 and 		   controller_with_avoidance3: DECIDE ONE CODE
+
+2. dynamic_obstacle_detection_idris --> COMMENTED
+
+3. dynamic_trajectory --> COMMENTED
+
+4. hist_visual --> TO BE COMMENTED
+
+5. obstacle_modelling --> TO BE COMMENTED
+
+6. path_planning --> TO BE COMMENTED
+
+7. pp_lidar_controller --> TO BE COMMENTED
+
+8. purepursuit_fx2 --> idris working
+
+9. smoothed_obstacle_avoidance --> TO BE COMMENTED
+
+10. trajectory_gen --> COMMENTED

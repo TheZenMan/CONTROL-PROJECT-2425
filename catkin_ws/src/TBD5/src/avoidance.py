@@ -262,7 +262,8 @@ def callback_mocap(odometry_msg):
                 print ("emergency stop!")
 
         else:
-            if ind < len(traj_x)-1:
+            if ind < len(traj_x)-1:    #since no obstacles are detected, the car follow the pure pursuit while reaching
+                                       #the goal point
                 print('Running Trajectory')
                 target_speed = 30
 
@@ -282,7 +283,7 @@ def callback_mocap(odometry_msg):
                 control_request.steering = target_angle
                 ctrl_pub.publish(control_request)
 
-            elif min_dist < 0.15:
+            elif min_dist < 0.15:    #emergency stop
                 while min_dist < 0.2:
                     control_request = lli_ctrl_request()
                     control_request.velocity = 0
@@ -290,25 +291,25 @@ def callback_mocap(odometry_msg):
                     ctrl_pub.publish(control_request)
                     print ("emergency stop!")
 
-            else:
-                print("### DONE WITH TRAJECTORY")
+            else:              
+                print("### DONE WITH TRAJECTORY")   
 
                 control_request = lli_ctrl_request()
-                control_request.velocity = 0
+                control_request.velocity = 0     #the car stops becase it has reached the goal point
                 control_request.steering = 0
                 ctrl_pub.publish(control_request)
 
 
-def callback_lidar(scan):
+def callback_lidar(scan):   #callback to obtain information from the lidar
     global ranges
     global angle_min
     global increment
-    if not len(traj_x) == 0: #both subscribers dont start same time
+    if not len(traj_x) == 0: #Necessary to link the two subscribers
         ranges = scan.ranges
         angle_min = scan.angle_min
         increment = scan.angle_increment
 
-def callback_traj(traj_msg):
+def callback_traj(traj_msg):   #callback to obtain information about the trajectories
 
     global traj_x
     global traj_y
