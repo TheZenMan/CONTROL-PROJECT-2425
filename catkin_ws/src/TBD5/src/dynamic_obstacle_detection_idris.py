@@ -56,8 +56,8 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
             (abs(y_1[i]-y_2[i])/resolution > 0.01 and
              abs(y_1[i]-y_2[i])/resolution < 0.03)): #comparison between two differen positions
         
-            x_currvel=(x_1[i]-x_2[i])/0.8
-            y_currvel =(y_1[i]-y_2[i])/0.8
+            x_currvel=(x_1[i]-x_2[i])/scan_time   #velocity based on the rate of frequency of publishing of the Lidar
+            y_currvel =(y_1[i]-y_2[i])/scan_time
             x_vel_list.append(x_currvel)
             y_vel_list.append(y_currvel)
 
@@ -165,6 +165,7 @@ def callback_lidar(scan):
   
     global t
     global curr_scan
+    global scan_time
  
     scan_time = scan.scan_time
     t += scan_time
