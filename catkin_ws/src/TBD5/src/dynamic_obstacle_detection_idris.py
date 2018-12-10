@@ -55,9 +55,9 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
              abs(x_1[i]-x_2[i])/resolution < 0.03)  or
             (abs(y_1[i]-y_2[i])/resolution > 0.01 and
              abs(y_1[i]-y_2[i])/resolution < 0.03)): #comparison between two differen positions
-        
-            x_currvel=(x_1[i]-x_2[i])/scan_time   #velocity based on the rate of frequency of publishing of the Lidar
-            y_currvel =(y_1[i]-y_2[i])/scan_time
+            
+            x_currvel=(x_1[i]-x_2[i])/0.5   #velocity based on the rate of frequency of publishing of the Lidar
+            y_currvel =(y_1[i]-y_2[i])/0.5
             x_vel_list.append(x_currvel)
             y_vel_list.append(y_currvel)
 
@@ -156,10 +156,10 @@ def callback_mocap(odometry_msg):  #takes information from the mocap system
             x1_list = x2_list  # Refresh lists so we always compare every 0.5 seconds
             y1_list = y2_list
             d1_list = d2_list
-            if walking ==True:
-                print('Something is moving')
-                print('x velocity',x_velocity)
-                print('y velocity', y_velocity)
+            #if walking ==True:
+                #print('Something is moving')
+                #print('x velocity',x_velocity)
+                #print('y velocity', y_velocity)
 
 def callback_lidar(scan):
   

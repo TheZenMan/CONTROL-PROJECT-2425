@@ -23,7 +23,7 @@ ranges=[]
 def callback_mocap(odometry_msg):  #information from the Mocap
     global curr_scan
     global t
-
+    
     if not curr_scan is None:
 	x_pos = odometry_msg.pose.pose.position.x
         y_pos = odometry_msg.pose.pose.position.y
@@ -50,6 +50,24 @@ def callback_mocap(odometry_msg):  #information from the Mocap
             x_traj.append(x_pos)   #creation of a trajectory on x with the average of the x position of the obstacle
 	    y_traj.append(y_pos)   #creation of a trajectory on y with the average of the x position of the obstacle
 
+	x1_pos=0
+        y1_pos=0 
+        x2_pos=0
+        y2_pos=0
+	#v_list=[0]
+        if t<0.005:#want first lists near start of time
+	    x1_pos = x_pos
+	    y1_pos = y_pos
+	if t%0.01 < 0.001:
+	    x2_pos = x_pos
+	    y2_pos = y_pos
+	if not x2_pos == 0:
+	    vel_x,vel_y = comvelocity(x1_pos,y1_pos,x2_pos,y2_pos)
+	    x1_pos = x2_pos
+	    y1_pos = y2_pos
+	    #v_list.append(vel_x)
+	    print('vel_x',vel_x)
+	
 	dynamic_traj = PoseArray()
         dynamic_traj.header.stamp = rospy.Time.now()
         dynamic_traj.header.frame_id ='qualisys'
@@ -58,8 +76,16 @@ def callback_mocap(odometry_msg):  #information from the Mocap
 	    pose = Pose()
 	    pose.position.x = x_traj[i]
 	    pose.position.y = y_traj[i]
+	    #pose.position.z = v_list[i]
 	    dynamic_traj.poses.append(pose)
 	dynamic_traj_pub.publish(dynamic_traj)  #publisher to publish the information of the trajectories created
+
+def comvelocity (x1,y1,x2,y2):
+    v_x=0
+    v_y=0
+    v_x= (x2-x1)/0.05
+    v_y= (y2_y1)/0.05
+    return v_x,v_y
 
 
 def averagenum (x_1,y_1): #compute the average value of the position
