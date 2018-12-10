@@ -16,6 +16,7 @@ x_obs_list = []
 y_obs_list = []
 x_list=[]
 y_list=[]
+obs_vel_x = 1
 
 
 def points(x_list, y_list):
@@ -28,19 +29,30 @@ def points(x_list, y_list):
     p_x4 =0
     p_y4 =0
 
-
     for i in range(len(x_list)):
-        p_y1 = y_list[i]-0.22
-	p_x1 = x_list[i]+0.47
-	p_y2 = y_list[i]+0.22
-	p_x2 = x_list[i]+0.47
-	p_y3 = y_list[i]+0.22
-	p_x3 = x_list[i]-0.47
-	p_y4 = y_list[i]-0.22
-	p_x4 = x_list[i]-0.47
-
-
+        if obs_vel_x >0:
+           p_y1 = y_list[i]-0.22
+	   p_x1 = x_list[i]+1
+	   p_y2 = y_list[i]+0.22
+	   p_x2 = x_list[i]+1
+	   p_y3 = y_list[i]+0.22
+	   p_x3 = x_list[i]
+	   p_y4 = y_list[i]-0.22
+	   p_x4 = x_list[i]
+        
+	else:
+	
+           p_y1 = y_list[i]-0.22
+	   p_x1 = x_list[i]
+	   p_y2 = y_list[i]+0.22
+	   p_x2 = x_list[i]
+	   p_y3 = y_list[i]+0.22
+	   p_x3 = x_list[i]-1
+	   p_y4 = y_list[i]-0.22
+	   p_x4 = x_list[i]-1
+    
     return p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4
+
 
 
 
@@ -83,6 +95,8 @@ def callback_dyn(dyn_msg):
 
 
 	obstacle_pub.publish(obs_model_dyn)
+
+def callback_obs_detection(detection_msg):
 
 
 def main():
