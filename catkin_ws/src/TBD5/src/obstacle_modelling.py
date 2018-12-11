@@ -16,10 +16,10 @@ x_obs_list = []
 y_obs_list = []
 x_list=[]
 y_list=[]
-obs_vel_x = 1
+obs_vel_x = []
 
 
-def points(x_list, y_list):
+def points(x_list, y_list, obs_vel_x):
     p_x1 =0
     p_y1 =0
     p_x2 =0
@@ -30,7 +30,7 @@ def points(x_list, y_list):
     p_y4 =0
 
     for i in range(len(x_list)):
-        if obs_vel_x >0:
+        if obs_vel_x[i] > 0:
            p_y1 = y_list[i]-0.22
 	   p_x1 = x_list[i]+1
 	   p_y2 = y_list[i]+0.22
@@ -61,15 +61,18 @@ def callback_dyn(dyn_msg):
 	global y_obs_list
         global x_obs
         global y_obs
+	global obs_vel_x
         x_obs_list=[]
         y_obs_list=[]
+	obs_vel_x=[]
 	position_poses = dyn_msg.poses
         for dyn_pt in position_poses:
             x_obs_list.append(dyn_pt.position.x)
             y_obs_list.append(dyn_pt.position.y)
+	    obs_vel_x.append(dyn_pt.position.z)
 
 
-	p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4 = points(x_obs_list, y_obs_list)
+	p_x1, p_y1, p_x2, p_y2, p_x3, p_y3, p_x4, p_y4 = points(x_obs_list, y_obs_list, obs_vel_x)
 
         obs_model_dyn = PolygonStamped()
         obs_model_dyn.header.stamp = rospy.Time.now()
