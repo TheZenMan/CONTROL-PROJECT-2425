@@ -54,7 +54,7 @@ def callback_mocap(odometry_msg):  #information from the Mocap
         y1_pos=0 
         x2_pos=0
         y2_pos=0
-	#v_list=[0]
+	v_list=[0]
         if t<0.005:#want first lists near start of time
 	    x1_pos = x_pos
 	    y1_pos = y_pos
@@ -65,7 +65,7 @@ def callback_mocap(odometry_msg):  #information from the Mocap
 	    vel_x,vel_y = comvelocity(x1_pos,y1_pos,x2_pos,y2_pos)
 	    x1_pos = x2_pos
 	    y1_pos = y2_pos
-	    #v_list.append(vel_x)
+	    v_list.append(vel_x)
 	    print('vel_x',vel_x)
 	
 	dynamic_traj = PoseArray()
@@ -76,7 +76,7 @@ def callback_mocap(odometry_msg):  #information from the Mocap
 	    pose = Pose()
 	    pose.position.x = x_traj[i]
 	    pose.position.y = y_traj[i]
-	    #pose.position.z = v_list[i]
+	    pose.position.z = v_list[i]
 	    dynamic_traj.poses.append(pose)
 	dynamic_traj_pub.publish(dynamic_traj)  #publisher to publish the information of the trajectories created
 
