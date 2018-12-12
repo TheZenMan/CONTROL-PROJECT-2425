@@ -25,9 +25,9 @@ except ImportError:
 
 # Parameters
 map_frame_id = "qualisys"
-map_resolution = 0.05 # size of each index in [m]
-map_width = 300 # max index of grid width
-map_height = 300 # max index of grid height
+map_resolution = 0.20 # size of each index in [m]
+map_width = 60 # max index of grid width
+map_height = 60 # max index of grid height
 map_origin_x = -map_resolution * map_width / 2
 map_origin_y = -map_resolution * map_height / 2
 map_origin_yaw = 0

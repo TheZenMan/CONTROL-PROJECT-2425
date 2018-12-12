@@ -20,7 +20,7 @@ k = 0.4  # look forward gain
 Lfc = 0.4# look-ahead distance
 L = 0.32  # [m] wheel base of
 
-target_speed = 25 # [PWM %]
+target_speed = 100 # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -136,7 +136,7 @@ def callback_mocap(odometry_msg):
 
         ind = calc_target_index(state_m, traj_x, traj_y)
         min_dist = min(ranges)
-
+        min_index = ranges.index(min(ranges))
         dist_tg = dist_target(state_m, traj_x, traj_y)
 
         if min_dist < 0.6 and dist_tg > d_min:
@@ -147,96 +147,16 @@ def callback_mocap(odometry_msg):
                 #animation=animation.FuncAnimation(fig,update_hist, 720, fargs =(angles_list,))
                 #plt.show()
                 control_request = lli_ctrl_request()
-                control_request.velocity = 25
+                control_request.velocity = 95
 
-            # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car uses [rad] then mutliply by 100 because the car takes in percentage to steer
-                if -(95*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
-                    if ranges[i] < 0.2:
-                        #control_request.steering = (15*math.pi/180)*100
-                        ratio=1.66/(abs(angle_list[i]))
-                        control_request.steering = (15*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #elif 0.2 < ranges[i] < 0.4:
-                 #    control_request.steering = 0
-            #else:
-             #   control_request.steering = target_angle
-
-                if -(70*math.pi/180) < angle_list[i] <= -(50*math.pi/180):
-                    if ranges[i] < 0.3:
-                        #control_request.steering = (25*math.pi/180)*100
-                        ratio=1.22/(abs(angle_list[i]))
-                        control_request.steering = (25*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #else:
-             #   control_request.steering = target_angle
-
-                if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
-                    if ranges[i] < 0.4:
-                        #control_request.steering = (35*math.pi/180)*100
-                        ratio = 0.873/(abs(angle_list[i]))
-                        control_request.steering = (35*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #else:
-            #   control_request.steering = target _angle
-
-                if -(30*math.pi/180) < angle_list[i] <= -(10*math.pi/180):
-                    if ranges[i] < 0.5:
-                        #control_request.steering = (45*math.pi/180)*100
-                        ratio=0.524/(abs(angle_list[i]))
-                        control_request.steering = (45*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #else:
-            #    control_request.steering = -(15*math.py/180)*100
-
-                if -(10*math.pi/180) < angle_list[i] <= (10*math.pi/180):
-                    if ranges[i] < 0.6:
-                        #control_request.steering = -(55*math.pi/180)*100
-                        ratio=0.175/(abs(angle_list[i]))
-                        control_request.steering = -(55*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #else:
-            #   control_request.steering = target_angle
-
-                if (10*math.pi/180) < angle_list[i] <= (30*math.pi/180):
-                    if ranges[i] < 0.5:
-                        #control_request.steering = -(45*math.pi/180)*100
-                        ratio=0.52/(abs(angle_list[i]))
-                        control_request.steering = -(45*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #else:
-            #   control_request.steering = target_angle
-
-                if (30*math.pi/180) < angle_list[i] <= (50*math.pi/180):
-                    if ranges[i] < 0.4:
-                        #control_request.steering = -(35*math.pi/180)*100
-                        ratio=0.8726/(abs(angle_list[i]))
-                        control_request.steering = -(35*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #else:
-            #   control_request.steering = target_angle
-
-                if (50*math.pi/180) < angle_list[i] <= (70*math.pi/180):
-                    if ranges[i] < 0.3:
-                        #control_request.steering = -(25*math.pi/180)*100
-                        ratio=1.22/(abs(angle_list[i]))
-                        control_request.steering = -(25*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #else:
-            #   control_request.steering = target _angle
-
-                if (70*math.pi/180) <= angle_list[i] <= (95*math.pi/180):
-                    if ranges[i] < 0.2:
-                        #control_request.steering = -(15*math.pi/180)*100
-                        ratio=(abs(angle_list[i]))
-                        control_request.steering = -(15*math.pi/180)*100*ratio
-                        ctrl_pub.publish(control_request)
-            #elif 0.2 < ranges[i] < 0.4:
-             #   control_request.steering = 0
-            #else:
-            #   control_request.steering = (15*math.py/180)*100
-               # else:
-               #     control_request_steering = 0
-            #ctrl_pub.publish(control_request)
+            min_angle_abs = 180*(abs(angle_list[min_index]))/(math.pi)
+            y_steering = 0.4751131*min_angle_abs  - 59.23077
+            if angle_list[min_index]<-0.1: #negative values
+                y_steering = -y_steering
+            range_limit = -0.004751131*min_angle_abs + 0.6423077
+            if ranges[min_index]<range_limit:
+                control_request.steering = (y_steering*(math.pi)/180)*100
+                ctrl_pub.publish(control_request)
         else:
             if ind < len(traj_x)-1:
                 print('Running Trajectory')

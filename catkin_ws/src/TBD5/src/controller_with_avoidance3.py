@@ -19,7 +19,7 @@ k = 0.4  # look forward gain
 Lfc = 0.4# look-ahead distance
 L = 0.32  # [m] wheel base of
 
-target_speed = 30 # [PWM %]
+target_speed = 75 # [PWM %]
 
 ####################
 # GLOBAL VARIABLES #
@@ -127,108 +127,118 @@ def callback_mocap(odometry_msg):
             for i in range(len(ranges)): # the program might be checking in each increment angle if there is obstacle in the zone
                 angle = angle_min + i * increment
                 angle_list.append(angle)
-                target_speed = 20
-
+                target_speed = 95
+                abs_angle=180*(abs(angle_list[i]))/math.pi
+                range_limit = -0.004751131 + 0.6423077
             # Want the car to turn 45[deg] so here it calculates [rad] since LidarScan and car uses [rad] then mutliply by 100 because the car takes in percentage to steer
                 if -(90*math.pi/180) <= angle_list[i] <= -(70*math.pi/180):
-                    if ranges[i] < 0.2:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         if angle_list[i] < 0:
                             y_steering = -y_steering
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
+                        ctrl_pub.publish(control_request)
                         #control_request.steering = (15*math.pi/180)*100
 
 
                 if -(70*math.pi/180) < angle_list[i] <= -(50*math.pi/180):
-                    if ranges[i] < 0.3:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         if angle_list[i] < 0:
                             y_steering = -y_steering
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
+                        ctrl_pub.publish(control_request)
                         #control_request.steering = (25*math.pi/180)*100
 
                 if -(50*math.pi/180) < angle_list[i] <= -(30*math.pi/180):
-                    if ranges[i] < 0.4:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         if angle_list[i] < 0:
                             y_steering = -y_steering
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
+                        ctrl_pub.publish(control_request)
                         #control_request.steering = (35*math.pi/180)*100
 
                 if -(30*math.pi/180) < angle_list[i] <= -(10*math.pi/180):
-                    if ranges[i] < 0.5:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         if angle_list[i] < 0:
                             y_steering = -y_steering
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
+                        ctrl_pub.publish(control_request)
                         #control_request.steering = (45*math.pi/180)*100
 
                 if -(10*math.pi/180) < angle_list[i] <= (10*math.pi/180):
-                    if ranges[i] < 0.6:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
-                        if angle_list[i] < 0:
-                            y_steering = -y_steering
+                       # if angle_list[i] < 0:
+                       #y_steering = -y_steering
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
+                        ctrl_pub.publish(control_request)
                         #control_request.steering = -(55*math.pi/180)*100
                     #else:
-                        if ranges[i] < 0.2:
-                            while min_dist < 0.2:
-                                control_request = lli_ctrl_request()
-                                control_request.velocity = 0
-                                control_request.steering = 0
-                                ctrl_pub.publish(control_request)
-                                print ("Too close to steer!")
+                        #if ranges[i] < 0.15:
+                        #    while min_dist < 0.15:
+                         #       control_request = lli_ctrl_request()
+                                #control_request.velocity = 0
+                                #control_request.steering = 0
+                                #ctrl_pub.publish(control_request)
+                                #print ("Too close to steer!")
 
                 if (10*math.pi/180) < angle_list[i] <= (30*math.pi/180):
-                    if ranges[i] < 0.5:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
                         #control_request.steering = -(45*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
 
                 if (30*math.pi/180) < angle_list[i] <= (50*math.pi/180):
-                    if ranges[i] < 0.4:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
                         #control_request.steering = -(35*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
 
                 if (50*math.pi/180) < angle_list[i] <= (70*math.pi/180):
-                    if ranges[i] < 0.3:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
                         #control_request.steering = -(25*math.pi/180)*100
+                        ctrl_pub.publish(control_request)
 
                 if (70*math.pi/180) <= angle_list[i] <= (90*math.pi/180):
-                    if ranges[i] < 0.2:
+                    if ranges[i] < range_limit:
                         y_steering =180*0.4751131*(abs(angle_list[i]))/(math.pi) - 59.23077
                         control_request = lli_ctrl_request()
                         control_request.velocity = target_speed
-                        control_request.steering = (y_steering/2 * math.pi / 180) * 100
+                        control_request.steering = (y_steering * math.pi / 180) * 100
                         #control_request.steering = -(15*math.pi/180)*100
-                    
+                        ctrl_pub.publish(control_request)
 
-        elif min_dist < 0.15:
-            while min_dist < 0.2:
-                control_request = lli_ctrl_request()
-                control_request.velocity = 0
-                control_request.steering = 0
-                ctrl_pub.publish(control_request)
-                print ("emergency stop!")
+
+        #elif min_dist < 0.15:
+         #   while min_dist < 0.15:
+          #      control_request = lli_ctrl_request()
+           #     control_request.velocity = 0
+            #    control_request.steering = 0
+                #ctrl_pub.publish(control_request)
+              #  print ("emergency stop!")
 
         else:
             if ind < len(traj_x)-1:
@@ -243,7 +253,7 @@ def callback_mocap(odometry_msg):
                 target_pose.point.x = traj_x[ind]
                 target_pose.point.y = traj_y[ind]
                 target_pub.publish(target_pose)
-
+                target_speed = 100
                 target_angle = max(-80, min(delta / (math.pi / 4) * 100, 80))
                 control_request = lli_ctrl_request()
                 control_request.velocity = target_speed
@@ -251,13 +261,13 @@ def callback_mocap(odometry_msg):
 
                 ctrl_pub.publish(control_request)
 
-            elif min_dist < 0.15:
-                while min_dist < 0.2:
-                    control_request = lli_ctrl_request()
-                    control_request.velocity = 0
-                    control_request.steering = 0
-                    ctrl_pub.publish(control_request)
-                    print ("emergency stop!")
+            #elif min_dist < 0.15:
+                #while min_dist < 0.2:
+                    #control_request = lli_ctrl_request()
+                    #control_request.velocity = 0
+                    #control_request.steering = 0
+                    #ctrl_pub.publish(control_request)
+                    #print ("emergency stop!")
 
             else:
                 print("### DONE WITH TRAJECTORY")

@@ -5,6 +5,8 @@
     # frankji@kth.se
 """
 
+import rospy
+
 # Python standard library
 from math import cos, sin, atan2, fabs, sqrt
 from math import pi, ceil
@@ -16,6 +18,8 @@ import numpy as np
 from local.geometry_msgs import PoseStamped, Quaternion
 from local.sensor_msgs import LaserScan
 from local.map_msgs import OccupancyGridUpdate
+
+from std_msgs.msg import Int8MultiArray
 
 from grid_map import GridMap
 
@@ -34,6 +38,8 @@ class Mapping:
                                       "self.occupied_space": self.occupied_space}
         self.radius = radius
         self.__optional = optional
+
+        # self.grid_publisher = rospy.Publisher('/persistent_grid_map', Int8MultiArray, queue_size = 1)
 
     def get_yaw(self, q):
         """Returns the Euler yaw from a quaternion.
@@ -231,11 +237,16 @@ class Mapping:
 
             # add free spaces, but keep c spaces
             for free_space in free_spaces:
-                if not grid_map[free_space[0], free_space[1]] == self.c_space:
-                    self.add_to_map(grid_map, free_space[0], free_space[1],
-                                    self.free_space)
+                if free_space[0] < grid_map.get_width and free_space[1] < grid_map.get_height:
+                    if not grid_map[free_space[0], free_space[1]] == self.c_space:
+                        self.add_to_map(grid_map, free_space[0], free_space[1],
+                                        self.free_space)
 
             updates += free_spaces
+
+        # grid_msg = Int8MultiArray()
+        # grid_msg.data = np.asarray(updates, dtype='int8')
+        # self.grid_publisher.publish(grid_msg)
 
         for laser_pt in laser_pts:
             self.add_to_map(grid_map, laser_pt[0], laser_pt[1],
@@ -309,11 +320,12 @@ class Mapping:
                             self.add_to_map(grid_map, ii, jj,
                                             self.c_space)
 
-        width, height = grid_map.get_width(), grid_map.get_height()
-        for i in range(width):
-            for j in range(height):
-                if grid_map[i, j] == self.occupied_space:
-                    set_circle_c_space(i, j)
+        # width, height = grid_map.get_width(), grid_map.get_height()
+        # for i in range(width):
+            # for j in range(height):
+                # if grid_map[i, j] == self.occupied_space:
+                    # set_circle_c_space(i, j)
 
         # Return the inflated map
         return grid_map
+

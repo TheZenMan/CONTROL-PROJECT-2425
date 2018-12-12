@@ -10,7 +10,7 @@
         <arg name="model" value="SVEA5"/>
     </include>
 
-    <node pkg="TBD5" type="qualTBD5.py" name="qualTBD5" output="screen"></node>
+    <node pkg="TBD5" type="qualTBD5.py" name="qualTBD5"></node>
 
     <node pkg="TBD5" type="dynamic_obstacle_detection_idris.py" name="do_detection" output="screen"></node>
     <node pkg="TBD5" type="dynamic_trajectory.py" name="dynamic_trajectory" output="screen"></node>
