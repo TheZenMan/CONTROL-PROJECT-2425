@@ -20,7 +20,7 @@ FREE = np.int8(0)
 OCCUPIED = np.int8(254)
 
 curr_scan = None
-dynamic_lookahead = 2   #range for detecting obstacles
+dynamic_lookahead = 4   #range for detecting obstacles
 resolution = 0.3   #to perform space discretization
 too_fast = 0.075 #meters every 0.05s
 
@@ -83,7 +83,7 @@ def compare(x_1,y_1,d_1,x_2,y_2,d_2):
                  # abs(x_1[i]-x_2[i]) < 0.03)  or
                 # (abs(y_1[i]-y_2[i]) > 0.01 and
                  # abs(y_1[i]-y_2[i]) < 0.03)): #comparison between two differen positions
-            if grid_ref_x2 < grid_width and grid_ref_y2 < grid_height:
+            if 0 < grid_ref_x2 < grid_width and 0 < grid_ref_y2 < grid_height:
                 # if grid_data[grid_ref_x2, grid_ref_y2] == FREE:
                 if grid_data[grid_ref_y2, grid_ref_x2] == FREE:
                 # if (not grid_data[grid_ref_x2, grid_ref_y2] == OCCUPIED and

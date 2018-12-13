@@ -12,8 +12,9 @@
 
     <node pkg="TBD5" type="qualTBD5.py" name="qualTBD5" output="screen"></node>
 
-    <node pkg="TBD5" type="dynamic_obstacle_detection_idris.py" name="do_detection" output="screen"></node>
+    <!--<node pkg="TBD5" type="dynamic_obstacle_detection_idris.py" name="do_detection" output="screen"></node>-->
     <!--<node pkg="TBD5" type="dynamic_obstacle_detection.py" name="dynamic_obstacle_detection" output="screen"></node>-->
+    <node pkg="TBD5" type="controller_with_avoidance2.py" name="pp_lidar_controller" output="screen"></node>
 
     <include file="$(find urg_node)/launch/urg_lidar.launch"/>
     <node pkg="lidar_mapping" type="main.py" name="occupancy_grid_handler" output="screen"></node>
