@@ -6,7 +6,7 @@ import numpy as np
 from math import degrees, cos, sin, sqrt, pi, atan2, sqrt
 from nav_msgs.msg import Odometry # Import the Odometry message from the nav_msgs.msg package
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Pose, PoseArray
+from geometry_msgs.msg import Pose, PoseArray, PoseWithCovarianceStamped, PolygonStamped, Point32
 
 obs_pub = rospy.Publisher('global_to_polar',PoseArray, queue_size=1) 
 
@@ -69,7 +69,7 @@ def callback_obs(obs_msg):
 
     total_points_x = [cx1,cx2,cx3,cx4]
     total_points_y = [cy1,cy2,cy3,cy4]
-    for i in range(len(total_points_x)): # 
+    for i in range(len(total_points_x)): # Converting from global to local
         x_rel = cos(yaw)*total_points_x[i] + sin(yaw)*total_points_y[i]
         y_rel = cos(yaw)*total_points_y[i] - sin(yaw)*total_points_x[i]
         phi = atan2(x_rel/y_rel)
@@ -82,7 +82,7 @@ def callback_obs(obs_msg):
     dynamic_obs_polygon.header.stamp = rospy.Time.now()
     dynamic_obs_polygon.header.frame_id ='qualisys'
 
-    for i in range(len(phi_list)):
+    for i in range(len(phi_list)): # Publishing as PoseArray
         pose = Pose()
         pose.position.x = phi_list[i]
         pose.position.y = dist_list[i]
