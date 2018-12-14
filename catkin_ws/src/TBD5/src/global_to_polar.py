@@ -2,12 +2,13 @@
 
 import rospy # Import the Python library for ROS
 import tf
+import numpy as np
 from math import degrees, cos, sin, sqrt, pi, atan2, sqrt
 from nav_msgs.msg import Odometry # Import the Odometry message from the nav_msgs.msg package
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import Pose, PoseArray
 
-obs_pub = rospy.Publisher('global_to_polar',LaserScan, queue_size=1) 
+obs_pub = rospy.Publisher('global_to_polar',PoseArray, queue_size=1) 
 
 WAYPOINT_SEPARATION = 0.1
 total_points_x = []
@@ -41,51 +42,52 @@ def gen_line_segment(start_pt, end_pt):
 
         return cx, cy
 
-def callback_odom(odom_msg)
-	global x_pos, y_pos
+def callback_odom(odom_msg): # Unpacking odom_msg
+    global x_pos, y_pos, yaw
 
     x_pos = odom_msg.pose.pose.position.x
     y_pos = odom_msg.pose.pose.position.y
-	yaw = odom_msg.pose.pose.orientation.z
+    yaw = odom_msg.pose.pose.orientation.z
 
 def callback_obs(obs_msg):
-	global p1, p2, p3, p4
-	global phi_list
-	global dist_list
+    global p1, p2, p3, p4
+    global phi_list
+    global dist_list
 
-	phi_list = []
-	dist_list = []
+    phi_list = []
+    dist_list = []
 
-    p1 = obs_msg.polygon.points[0]
+    p1 = obs_msg.polygon.points[0] # Unpacking the points
     p2 = obs_msg.polygon.points[1]
     p3 = obs_msg.polygon.points[2]
     p4 = obs_msg.polygon.points[3]
 
-	cx1, cy1 = gen_line_segment(p1, p2)
-	cx2, cy2 = gen_line_segment(p2, p3)
-	cx3, cy3 = gen_line_segment(p3, p4)
-	cx4, cy4 = gen_line_segment(p4, p1)
+    cx1, cy1 = gen_line_segment(p1, p2) # Connecting points with line and generate points on the line
+    cx2, cy2 = gen_line_segment(p2, p3)
+    cx3, cy3 = gen_line_segment(p3, p4)
+    cx4, cy4 = gen_line_segment(p4, p1)
 
-	total_points_x = [cx1,cx2,cx3,cx4]
-	total_points_y = [cy1,cy2,cy3,cy4]
-	for i in range(len(total_points_x)):
-		x_rel = cos(yaw)*total_points_x[i] + sin(yaw)*total_points_y[i]
-		y_rel = cos(yaw)*total_points_y[i] - sin(yaw)*total_points_x[i]
-		phi = atan2(x_rel/y_rel)
-		dist = sqrt(pow(x_rel, 2) + pow(y_rel, 2))
-		phi_list.append(phi)
-		dist_list.append(dist)
+    total_points_x = [cx1,cx2,cx3,cx4]
+    total_points_y = [cy1,cy2,cy3,cy4]
+    for i in range(len(total_points_x)): # 
+        x_rel = cos(yaw)*total_points_x[i] + sin(yaw)*total_points_y[i]
+        y_rel = cos(yaw)*total_points_y[i] - sin(yaw)*total_points_x[i]
+        phi = atan2(x_rel/y_rel)
+        dist = sqrt(pow(x_rel, 2) + pow(y_rel, 2))
+        phi_list.append(phi)
+        dist_list.append(dist)
 
-	dynamic_obs_polygon = PoseArray()
+
+    dynamic_obs_polygon = PoseArray()
     dynamic_obs_polygon.header.stamp = rospy.Time.now()
     dynamic_obs_polygon.header.frame_id ='qualisys'
 
-	for i in range(len(phi_list)):
-	    pose = Pose()
-	    pose.position.x = phi_list[i]
-	    pose.position.y = dist_list[i]
-	    dynamic_obs_polygon.poses.append(pose)
-	obs_pub.publish(dynamic_obs_polygon)
+    for i in range(len(phi_list)):
+        pose = Pose()
+        pose.position.x = phi_list[i]
+        pose.position.y = dist_list[i]
+        dynamic_obs_polygon.poses.append(pose)
+    obs_pub.publish(dynamic_obs_polygon)
 
 
 
@@ -93,7 +95,7 @@ def callback_obs(obs_msg):
 def main():
 
     obstacle_sub = rospy.Subscriber('obs_model_dyn', PolygonStamped, callback_obs)
-	odom_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_odom)
+    odom_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_odom)
     rospy.spin()
 
 if __name__ == '__main__':
