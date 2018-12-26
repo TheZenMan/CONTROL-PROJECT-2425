@@ -43,7 +43,7 @@ class State:
 ##############
 # CONTROLLER #
 ##############
-# Pure pursuit function where cx, cy are the trajectories we want to follow
+# Pure pursuit function where cx, cy are the trajectories to follow
 def pure_pursuit_control(state, cx, cy, pind):
 
     ind = calc_target_index(state, cx, cy) # Calculate index using function calc_target_index
@@ -61,7 +61,7 @@ def pure_pursuit_control(state, cx, cy, pind):
 
     alpha = math.atan2(ty - state.y, tx - state.x) - state.yaw
 
-    if state.v < 0:  # We always want a positive velocity
+    if state.v < 0:  # To always have positive velocity
         alpha = math.pi - alpha
 
     Lf = k * state.v + Lfc

@@ -10,9 +10,9 @@
         <arg name="model" value="SVEA5"/>
     </include>
 
-    <node pkg="TBD5" type="qualTBD5.py" name="qualTBD5" output="screen"></node>
+    <node pkg="TBD5" type="lidar_data.py" name="qualTBD5" output="screen"></node>
     <node pkg="TBD5" type="trajectory_gen.py" name="trajectory" output="screen"></node>
-    <node pkg="TBD5" type="path_planning.py" name="pure_puresuit_planner" output="screen"></node>
+    <node pkg="TBD5" type="pure_pursuit.py" name="pure_puresuit" output="screen"></node>
 
 
     <include file="$(find urg_node)/launch/urg_lidar.launch"/>
