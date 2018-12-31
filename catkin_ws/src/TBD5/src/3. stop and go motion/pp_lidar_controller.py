@@ -179,8 +179,6 @@ def callback_traj(traj_msg):
 def main():
     mocap_sub = rospy.Subscriber('odometry_body_frame', Odometry, callback_mocap)
     traj_sub = rospy.Subscriber('/nav_traj' + '/SVEA5', PoseArray, callback_traj)
-
-
     lidar_sub = rospy.Subscriber('/scan', LaserScan, callback_lidar)
 
     rospy.spin()
